@@ -1,11 +1,9 @@
 package com.etp.resumeg.resumeg;
 
-import java.awt.font.FontRenderContext;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,39 +11,25 @@ import com.itextpdf.io.source.PdfTokenizer;
 import com.itextpdf.io.source.RandomAccessFileOrArray;
 import com.itextpdf.io.source.RandomAccessSourceFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
-import com.itextpdf.kernel.font.PdfFont;
-import com.itextpdf.kernel.geom.LineSegment;
 import com.itextpdf.kernel.geom.Rectangle;
-import com.itextpdf.kernel.geom.Vector;
 import com.itextpdf.kernel.pdf.PdfDictionary;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfName;
 import com.itextpdf.kernel.pdf.PdfObject;
-import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfStream;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
-import com.itextpdf.kernel.pdf.canvas.parser.EventType;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfCanvasProcessor;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
-import com.itextpdf.kernel.pdf.canvas.parser.data.IEventData;
-import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
-import com.itextpdf.kernel.pdf.canvas.parser.filter.TextRegionEventFilter;
-import com.itextpdf.kernel.pdf.canvas.parser.listener.CharacterRenderInfo;
-import com.itextpdf.kernel.pdf.canvas.parser.listener.FilteredEventListener;
-import com.itextpdf.kernel.pdf.canvas.parser.listener.FilteredTextEventListener;
-import com.itextpdf.kernel.pdf.canvas.parser.listener.ITextExtractionStrategy;
 import com.itextpdf.kernel.pdf.canvas.parser.listener.LocationTextExtractionStrategy;
-import com.itextpdf.kernel.pdf.canvas.parser.listener.SimpleTextExtractionStrategy;
 
 public class App {
 
-//	public static final String DEST = "results/javaone16/hello1.pdf";
-	public static final String SRC_HELLO = "/home/alperk/Downloads/hello.pdf";
-	public static final String SRC_RESUME = "/home/alperk/Desktop/Resume.pdf";
-	public static final String DEST = "results/parse/stream";
-	public static final String HIGHLITED_PDF = "results/highlighted/helloworld.pdf";
+	public static final String SRC_HELLO = "pdf/input/hello.pdf";
+	public static final String SRC_RESUME = "pdf/input/Resume.pdf";
+	public static final String DEST = "pdf/output/parsedStream";
+	public static final String OUT_PDF = "pdf/output/testOutput.pdf";
 
 	public static void main(String[] args) throws Exception {
 //		new App().createDirs();
@@ -54,10 +38,9 @@ public class App {
 //		new App().getAllPdfObjectsAsStream();
 
 		new App().manipulatePdf();
-
 	}
 
-	private void parsePdf() throws IOException {
+	private void parsePdf() throws IOException   {
 		PdfReader pdfReader = new PdfReader(SRC_HELLO);
 		PdfDocument pdfDoc = new PdfDocument(pdfReader);
 //		byte[] streamBytes = pdfDoc.getPage(1).getContentBytes();
@@ -136,7 +119,7 @@ public class App {
 	}
 
 	protected void manipulatePdf() throws Exception {
-		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(HIGHLITED_PDF));
+		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
 		PdfCanvas canvas = new PdfCanvas(pdfDoc.getFirstPage().newContentStreamAfter(),
 				pdfDoc.getFirstPage().getResources(), pdfDoc);
 		canvas.saveState();
@@ -152,7 +135,7 @@ public class App {
 
 //		// "Your Name" rect
 //		extractTextFromRectArea(SRC_RESUME, new Rectangle(50.695f, 708.0f, 185f, 48f), canvas);
-		
+
 		// "Your" rect
 //		extractTextFromRectArea(SRC_RESUME, new Rectangle(50.695312f, 708.0f, 74.13132f, 48.0f), canvas);
 //		// "our N" rect
