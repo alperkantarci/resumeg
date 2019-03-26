@@ -27,7 +27,8 @@ import com.itextpdf.kernel.pdf.canvas.parser.listener.LocationTextExtractionStra
 public class App {
 
 	public static final String SRC_HELLO = "pdf/input/hello.pdf";
-	public static final String SRC_RESUME = "pdf/input/Resume.pdf";
+//	public static final String SRC_RESUME = "pdf/input/Resume.pdf";
+	public static final String SRC_RESUME = "pdf/input/Resume2.pdf";
 	public static final String DEST = "pdf/output/parsedStream";
 	public static final String OUT_PDF = "pdf/output/testOutput.pdf";
 
@@ -40,7 +41,7 @@ public class App {
 		new App().manipulatePdf();
 	}
 
-	private void parsePdf() throws IOException   {
+	private void parsePdf() throws IOException {
 		PdfReader pdfReader = new PdfReader(SRC_HELLO);
 		PdfDocument pdfDoc = new PdfDocument(pdfReader);
 //		byte[] streamBytes = pdfDoc.getPage(1).getContentBytes();
@@ -120,6 +121,10 @@ public class App {
 
 	protected void manipulatePdf() throws Exception {
 		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
+		System.out.println("pageWidth:" + pdfDoc.getFirstPage().getPageSize().getWidth());
+		System.out.println("pageHeight:" + pdfDoc.getFirstPage().getPageSize().getHeight());
+		System.out.println("pageHeight:" + pdfDoc.getFirstPage().getCropBox().getTop());
+		
 		PdfCanvas canvas = new PdfCanvas(pdfDoc.getFirstPage().newContentStreamAfter(),
 				pdfDoc.getFirstPage().getResources(), pdfDoc);
 		canvas.saveState();
@@ -128,19 +133,32 @@ public class App {
 //		canvas.rectangle(43.5, 122.25, 358.5, 60.75);
 //		canvas.rectangle(43.5, 42, 358.5, 77.25);
 //		canvas.rectangle(43.195312f, 66.75f, 45.328312f, 1f);
-		canvas.rectangle(50.695f, 708.0f, 90f, 48f);
+		canvas.rectangle(89.25f, 792 - 232.5f - 16f, 54f, 16f);
+		canvas.rectangle(0, 0, pdfDoc.getFirstPage().getPageSize().getWidth(), pdfDoc.getFirstPage().getPageSize().getHeight());
+		canvas.rectangle(89.25f, 792 - 114f - 16f, 42f, 16f);
+//		float leftPercent = (89.25f / 612f) * 100;
+//		float topPercent = ((792f - 232.5f) / 792f) * 100;
+//		canvas.rectangle(leftPercent, topPercent, 54f, 16f);
+		
+		// Stamping content
 
-		// "Your" rect
-		extractTextFromRectArea(SRC_RESUME, new Rectangle(50.695f, 708.0f, 90f, 48f), canvas);
+//		 "EDUCATION" rect, Resume2.pdf
+		extractTextFromRectArea(SRC_RESUME, new Rectangle(89.25f, 232.5f, 54f, 16f), canvas);
 
-//		// "Your Name" rect
+////		 "Name" rect, Resume.pdf
+//		extractTextFromRectArea(SRC_RESUME, new Rectangle(145.2675f, 708.0f, 116f, 48f), canvas);
+
+//		// "Your" rect, Resume.pdf
+//		extractTextFromRectArea(SRC_RESUME, new Rectangle(50.695f, 708.0f, 92f, 48f), canvas);
+
+//		// "Your Name" rect, Resume.pdf
 //		extractTextFromRectArea(SRC_RESUME, new Rectangle(50.695f, 708.0f, 185f, 48f), canvas);
 
-		// "Your" rect
+		// "Your" rect, Resume.pdf
 //		extractTextFromRectArea(SRC_RESUME, new Rectangle(50.695312f, 708.0f, 74.13132f, 48.0f), canvas);
-//		// "our N" rect
+//		// "our N" rect, Resume.pdf
 //		extractTextFromRectArea(SRC_RESUME, new Rectangle(74.13136f, 708.0f, 96.77536f, 48.0f), canvas);
-		// "ur Nam" rect
+		// "ur Nam" rect, Resume.pdf
 //		extractTextFromRectArea(SRC_RESUME, new Rectangle(96.775406f, 708.0f, 119.7794f, 48.0f), canvas);
 
 		canvas.setStrokeColor(ColorConstants.RED);
@@ -196,6 +214,9 @@ public class App {
 
 //		System.out.println(PdfTextExtractor.getTextFromPage(pdfDoc.getFirstPage(), extractionStrategy));
 //		new PdfCanvasProcessor(listener).processPageContent(pdfDoc.getFirstPage());
+		
+//		canvas.fill();
+		
 		new PdfCanvasProcessor(listener).processPageContent(pdfDoc.getFirstPage());
 		String actualText = extractionStrategy.getResultantText();
 		System.out.println("actualText: " + actualText);
