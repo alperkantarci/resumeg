@@ -1,43 +1,64 @@
 package com.etp.resumeg.resumeg;
 
-import java.io.File;
+import java.awt.font.FontRenderContext;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.itextpdf.io.source.PdfTokenizer;
-import com.itextpdf.kernel.PdfException;
+import com.itextpdf.io.source.RandomAccessFileOrArray;
+import com.itextpdf.io.source.RandomAccessSourceFactory;
+import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.geom.LineSegment;
+import com.itextpdf.kernel.geom.Rectangle;
+import com.itextpdf.kernel.geom.Vector;
 import com.itextpdf.kernel.pdf.PdfDictionary;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfName;
 import com.itextpdf.kernel.pdf.PdfObject;
+import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfStream;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
+import com.itextpdf.kernel.pdf.canvas.parser.EventType;
+import com.itextpdf.kernel.pdf.canvas.parser.PdfCanvasProcessor;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
+import com.itextpdf.kernel.pdf.canvas.parser.data.IEventData;
+import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
+import com.itextpdf.kernel.pdf.canvas.parser.filter.TextRegionEventFilter;
+import com.itextpdf.kernel.pdf.canvas.parser.listener.CharacterRenderInfo;
+import com.itextpdf.kernel.pdf.canvas.parser.listener.FilteredEventListener;
+import com.itextpdf.kernel.pdf.canvas.parser.listener.FilteredTextEventListener;
 import com.itextpdf.kernel.pdf.canvas.parser.listener.ITextExtractionStrategy;
+import com.itextpdf.kernel.pdf.canvas.parser.listener.LocationTextExtractionStrategy;
 import com.itextpdf.kernel.pdf.canvas.parser.listener.SimpleTextExtractionStrategy;
-import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Paragraph;
 
 public class App {
 
 //	public static final String DEST = "results/javaone16/hello1.pdf";
-	public static final String SRC = "results/javaone16/hello1.pdf";
-	public static final String DEST = "results/parse/stream%s";
+	public static final String SRC_HELLO = "/home/alperk/Downloads/hello.pdf";
+	public static final String SRC_RESUME = "/home/alperk/Desktop/Resume.pdf";
+	public static final String DEST = "results/parse/stream";
+	public static final String HIGHLITED_PDF = "results/highlighted/helloworld.pdf";
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 //		new App().createDirs();
 //		new App().helloWorldExample();
 //		new App().parsePdf();
-		new App().getAllPdfObjectsAsStream();
+//		new App().getAllPdfObjectsAsStream();
+
+		new App().manipulatePdf();
 
 	}
 
 	private void parsePdf() throws IOException {
-		PdfReader pdfReader = new PdfReader(SRC);
+		PdfReader pdfReader = new PdfReader(SRC_HELLO);
 		PdfDocument pdfDoc = new PdfDocument(pdfReader);
 //		byte[] streamBytes = pdfDoc.getPage(1).getContentBytes();
 //		ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();	
@@ -51,17 +72,17 @@ public class App {
 	}
 
 	public void helloWorldExample() throws FileNotFoundException {
-		new App().createDirs();
-		PdfDocument pdf = new PdfDocument(new PdfWriter(DEST));
-		Document document = new Document(pdf);
-		document.add(new Paragraph("Hello World!"));
-		document.add(new Paragraph("Paragraph2"));
-		document.close();
+//		new App().createDirs();
+//		PdfDocument pdf = new PdfDocument(new PdfWriter(DEST));
+//		Document document = new Document(pdf);
+//		document.add(new Paragraph("Hello World!"));
+//		document.add(new Paragraph("Paragraph2"));
+//		document.close();
 	}
 
 	public void getAllPdfObjectsAsStream() throws IOException {
 		long startTime = System.currentTimeMillis();
-		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC));
+		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_HELLO));
 
 		for (int i = 1; i <= pdfDoc.getNumberOfPdfObjects(); i++) {
 			PdfObject obj = pdfDoc.getPdfObject(i);
@@ -69,7 +90,6 @@ public class App {
 
 				System.out.println(obj);
 				if (obj.isDictionary() && obj != null) {
-//				System.out.println("dictionary obj");
 					PdfDictionary dicLevel1 = ((PdfDictionary) obj);
 					for (PdfName key : dicLevel1.keySet()) {
 						PdfObject value = dicLevel1.get(key);
@@ -77,39 +97,33 @@ public class App {
 						if (key.toString().equals("/Contents") && value.isStream()) {
 							PdfStream stream = ((PdfStream) value);
 
-							byte[] b;
-							try {
-								b = stream.getBytes();
-							} catch (Exception e) {
-								b = stream.getBytes(true);
-							}
-							FileOutputStream fos = new FileOutputStream(String.format(DEST, i));
-							fos.write(b);
-							fos.flush();
-							fos.close();
+//							byte[] b;
+//							try {
+//								b = stream.getBytes();
+//							} catch (Exception e) {
+//								b = stream.getBytes(true);
+//							}
+//							FileOutputStream fos = new FileOutputStream(String.format(DEST, i));
+//							fos.write(b);
+//							fos.flush();
+//							fos.close();
 
 							System.out.println("\t\t stream: " + stream.getBytes());
 							String s = new String(stream.getBytes());
 							System.out.println("bytes.toString():" + s);
-							
-							
-//							Pattern pattern = Pattern.compile("BT(.*?)ET", Pattern.MULTILINE);
+
+							// Get just tj (actual text) part from stream.getBytes();
+							ParseActualTextFromStreamBytes(stream);
+
 							Pattern pattern = Pattern.compile("\\(.*\\)Tj", Pattern.MULTILINE);
-							
+
 							Matcher matcher = pattern.matcher(s);
-							int matches= 0;
+							int matches = 0;
 							while (matcher.find()) {
 								matches++;
-								 System.out.println(matcher.group(0));
+								System.out.println(matcher.group(0));
 							}
 							System.out.println("matches count: " + matches);
-//							System.out.println("regex match: " + s.matches("BT(.*?)ET"));
-//						PdfTokenizer tokenizer = new PdfTokenizer();
-//						PdfDictionary contentsDic = ((PdfDictionary) value);
-//						for (PdfName key2 : contentsDic.keySet()) {
-//							PdfObject value2 = contentsDic.get(key2);
-//							System.out.println("\t" + "key: " + key2 + " value:" + value2);
-//						}
 						}
 					}
 				}
@@ -121,8 +135,87 @@ public class App {
 		System.out.println("elapsedTime: " + elapsedTime + " ms");
 	}
 
+	protected void manipulatePdf() throws Exception {
+		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(HIGHLITED_PDF));
+		PdfCanvas canvas = new PdfCanvas(pdfDoc.getFirstPage().newContentStreamAfter(),
+				pdfDoc.getFirstPage().getResources(), pdfDoc);
+		canvas.saveState();
+//		canvas.rectangle(36, 786, 500, 800);
+//		canvas.rectangle(43.5, 122.25, 358.5, 561.75);
+//		canvas.rectangle(43.5, 122.25, 358.5, 60.75);
+//		canvas.rectangle(43.5, 42, 358.5, 77.25);
+//		canvas.rectangle(43.195312f, 66.75f, 45.328312f, 1f);
+		canvas.rectangle(50.695f, 708.0f, 90f, 48f);
+
+		// "Your" rect
+		extractTextFromRectArea(SRC_RESUME, new Rectangle(50.695f, 708.0f, 90f, 48f), canvas);
+
+//		// "Your Name" rect
+//		extractTextFromRectArea(SRC_RESUME, new Rectangle(50.695f, 708.0f, 185f, 48f), canvas);
+		
+		// "Your" rect
+//		extractTextFromRectArea(SRC_RESUME, new Rectangle(50.695312f, 708.0f, 74.13132f, 48.0f), canvas);
+//		// "our N" rect
+//		extractTextFromRectArea(SRC_RESUME, new Rectangle(74.13136f, 708.0f, 96.77536f, 48.0f), canvas);
+		// "ur Nam" rect
+//		extractTextFromRectArea(SRC_RESUME, new Rectangle(96.775406f, 708.0f, 119.7794f, 48.0f), canvas);
+
+		canvas.setStrokeColor(ColorConstants.RED);
+		canvas.stroke();
+		canvas.restoreState();
+		pdfDoc.close();
+	}
+
+	private void ParseActualTextFromStreamBytes(PdfStream stream) throws FileNotFoundException, IOException {
+		PdfTokenizer tokenizer = new PdfTokenizer(
+				new RandomAccessFileOrArray(new RandomAccessSourceFactory().createSource(stream.getBytes())));
+
+		PrintWriter out = new PrintWriter(new FileOutputStream(DEST));
+
+		while (tokenizer.nextToken()) {
+			if (tokenizer.getTokenType() == PdfTokenizer.TokenType.String) {
+				out.println(tokenizer.getStringValue());
+			}
+		}
+		out.flush();
+		out.close();
+		tokenizer.close();
+	}
+
+	public void extractText(String src, String dest) throws IOException {
+//		PrintWriter out = new PrintWriter(new FileOutputStream(dest));
+//		PdfReader reader = new PdfReader(src);
+//		RenderListener listener = new MyTextRenderListener(out);
+//		PdfTextExtractor.
+//		PdfDocumentContentParser processor = new PdfDocumentContentParser(listener);
+////		PdfDictionary pageDic = reader.getPageN(1);
+////		PdfDictionary resourcesDic = pageDic.getAsDict(PdfName.RESOURCES);
+//		processor.pr
+//		processor.processContent(ContentByteUtils.getContentBytesForPage(reader, 1), resourcesDic);
+//		out.flush();
+//		out.close();
+//		reader.close();
+	}
+
 	public void createDirs() {
-		File file = new File(DEST);
-		file.getParentFile().mkdirs();
+//		File file = new File(DEST);
+//		file.getParentFile().mkdirs();
+	}
+
+	public void extractTextFromRectArea(String src, Rectangle rect, PdfCanvas canvas) throws IOException {
+		PdfDocument pdfDoc = new PdfDocument(new PdfReader(src));
+
+		CustomTextRegionEventFilter regionFilter = new CustomTextRegionEventFilter(rect, canvas);
+		CustomFilteredEventListener listener = new CustomFilteredEventListener();
+
+		LocationTextExtractionStrategy extractionStrategy = listener
+				.attachEventListener(new LocationTextExtractionStrategy(), regionFilter);
+
+//		System.out.println(PdfTextExtractor.getTextFromPage(pdfDoc.getFirstPage(), extractionStrategy));
+//		new PdfCanvasProcessor(listener).processPageContent(pdfDoc.getFirstPage());
+		new PdfCanvasProcessor(listener).processPageContent(pdfDoc.getFirstPage());
+		String actualText = extractionStrategy.getResultantText();
+		System.out.println("actualText: " + actualText);
+		pdfDoc.close();
 	}
 }
