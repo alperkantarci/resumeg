@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import com.itextpdf.kernel.geom.LineSegment;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.geom.Vector;
+import com.itextpdf.kernel.pdf.PdfStream;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.kernel.pdf.canvas.parser.EventType;
 import com.itextpdf.kernel.pdf.canvas.parser.data.IEventData;
@@ -34,7 +35,7 @@ public class CustomTextRegionEventFilter implements IEventFilter {
 			TextRenderInfo renderInfo = (TextRenderInfo) data;
 
 			LineSegment segment = renderInfo.getBaseline();
-
+			
 			Vector startPoint = segment.getStartPoint();
 			Vector endPoint = segment.getEndPoint();
 			Vector topRight = renderInfo.getAscentLine().getEndPoint();

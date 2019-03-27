@@ -1,9 +1,12 @@
 package com.etp.resumeg.resumeg;
 
+import java.awt.Color;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,6 +26,8 @@ import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfCanvasProcessor;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
 import com.itextpdf.kernel.pdf.canvas.parser.listener.LocationTextExtractionStrategy;
+import com.itextpdf.pdfcleanup.PdfCleanUpLocation;
+import com.itextpdf.pdfcleanup.PdfCleanUpTool;
 
 public class App {
 
@@ -136,6 +141,12 @@ public class App {
 		
 		//fixed relative sizes (y = pageHeight - actualY - actualFontSize)
 //		canvas.rectangle(89.25f, 792 - 114f - 16f, 42f, 16f);
+		
+		// Clean content by rectangle (needed jars: cleanup-2.0.3.jar (itext7 pdfSweep addon), commons-imaging-1.0a1.kar)
+		List cleanUpLocations = new ArrayList();
+		cleanUpLocations.add(new PdfCleanUpLocation(1, new Rectangle(89.25f, 792 - 114f - 16f, 42f, 16f)));
+		PdfCleanUpTool cleaner = new PdfCleanUpTool(pdfDoc, cleanUpLocations);
+		cleaner.cleanUp();
 		
 		// Stamping content
 		
