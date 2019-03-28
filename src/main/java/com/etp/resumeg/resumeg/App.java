@@ -10,15 +10,25 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.BasicConfigurator;
+
+import com.itextpdf.io.font.FontProgram;
+import com.itextpdf.io.font.FontProgramFactory;
+import com.itextpdf.io.font.PdfEncodings;
+import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.io.source.PdfTokenizer;
 import com.itextpdf.io.source.RandomAccessFileOrArray;
 import com.itextpdf.io.source.RandomAccessSourceFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfDictionary;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfName;
 import com.itextpdf.kernel.pdf.PdfObject;
+import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfStream;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -26,16 +36,24 @@ import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfCanvasProcessor;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
 import com.itextpdf.kernel.pdf.canvas.parser.listener.LocationTextExtractionStrategy;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.layout.LayoutArea;
+import com.itextpdf.layout.renderer.ParagraphRenderer;
 import com.itextpdf.pdfcleanup.PdfCleanUpLocation;
 import com.itextpdf.pdfcleanup.PdfCleanUpTool;
 
 public class App {
 
+	// Paths
 	public static final String SRC_HELLO = "pdf/input/hello.pdf";
 //	public static final String SRC_RESUME = "pdf/input/Resume.pdf";
 	public static final String SRC_RESUME = "pdf/input/Resume2.pdf";
 	public static final String DEST = "pdf/output/parsedStream";
 	public static final String OUT_PDF = "pdf/output/testOutput.pdf";
+	
+	// Fonts
+	public static final String CARDO_REGULAR = "resources/fonts/RobotoCondensed-Regular.ttf";
 
 	public static void main(String[] args) throws Exception {
 //		new App().createDirs();
@@ -43,7 +61,10 @@ public class App {
 //		new App().parsePdf();
 //		new App().getAllPdfObjectsAsStream();
 
-		new App().manipulatePdf();
+		BasicConfigurator.configure();
+//		new App().manipulatePdf();
+//		new App().replaceContentStream(SRC_RESUME, OUT_PDF);
+		new App().changeContentByLocation();
 	}
 
 	private void parsePdf() throws IOException {
@@ -67,6 +88,21 @@ public class App {
 //		document.add(new Paragraph("Hello World!"));
 //		document.add(new Paragraph("Paragraph2"));
 //		document.close();
+	}
+
+	public void replaceContentStream(String src, String dest) throws IOException {
+		PdfDocument pdfDoc = new PdfDocument(new PdfReader(src), new PdfWriter(dest));
+		PdfPage firstPage = pdfDoc.getFirstPage();
+		PdfDictionary dict = firstPage.getPdfObject();
+		PdfObject object = dict.get(PdfName.Contents);
+
+		if (object instanceof PdfStream) {
+			PdfStream stream = (PdfStream) object;
+			byte[] data = stream.getBytes();
+			System.out.println(new String(data));
+			stream.setData(new String(data).replace("<027A>", "(HELLO WORLD)").getBytes("UTF-8"));
+		}
+		pdfDoc.close();
 	}
 
 	public void getAllPdfObjectsAsStream() throws IOException {
@@ -126,8 +162,8 @@ public class App {
 
 	protected void manipulatePdf() throws Exception {
 		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
-		System.out.println("pageWidth:" + pdfDoc.getFirstPage().getPageSize().getWidth());
-		System.out.println("pageHeight:" + pdfDoc.getFirstPage().getPageSize().getHeight());
+//		System.out.println("pageWidth:" + pdfDoc.getFirstPage().getPageSize().getWidth());
+//		System.out.println("pageHeight:" + pdfDoc.getFirstPage().getPageSize().getHeight());
 
 		PdfCanvas canvas = new PdfCanvas(pdfDoc.getFirstPage().newContentStreamAfter(),
 				pdfDoc.getFirstPage().getResources(), pdfDoc);
@@ -138,18 +174,11 @@ public class App {
 //		canvas.rectangle(43.5, 42, 358.5, 77.25);
 //		canvas.rectangle(43.195312f, 66.75f, 45.328312f, 1f);
 //		canvas.rectangle(89.25f, 792 - 232.5f - 16f, 54f, 16f);
-		
-		//fixed relative sizes (y = pageHeight - actualY - actualFontSize)
+
+		// fixed relative sizes (y = pageHeight - actualY - actualFontSize)
 //		canvas.rectangle(89.25f, 792 - 114f - 16f, 42f, 16f);
-		
-		// Clean content by rectangle (needed jars: cleanup-2.0.3.jar (itext7 pdfSweep addon), commons-imaging-1.0a1.kar)
-		List cleanUpLocations = new ArrayList();
-		cleanUpLocations.add(new PdfCleanUpLocation(1, new Rectangle(89.25f, 792 - 114f - 16f, 42f, 16f)));
-		PdfCleanUpTool cleaner = new PdfCleanUpTool(pdfDoc, cleanUpLocations);
-		cleaner.cleanUp();
-		
+
 		// Stamping content
-		
 
 //		 "EDUCATION" rect, Resume2.pdf
 		extractTextFromRectArea(SRC_RESUME, new Rectangle(89.25f, 232.5f, 54f, 16f), canvas);
@@ -166,10 +195,54 @@ public class App {
 		// "Your" rect, Resume.pdf
 //		extractTextFromRectArea(SRC_RESUME, new Rectangle(50.695312f, 708.0f, 74.13132f, 48.0f), canvas);
 
+		// Clean content by rectangle (needed jars: cleanup-2.0.3.jar (itext7 pdfSweep
+		// addon), commons-imaging-1.0a1.kar)
+//				List cleanUpLocations = new ArrayList();
+//				cleanUpLocations.add(new PdfCleanUpLocation(1, new Rectangle(89.25f, 792 - 114f - 16f, 42f, 16f)));
+//				PdfCleanUpTool cleaner = new PdfCleanUpTool(pdfDoc, cleanUpLocations);
+//				cleaner.cleanUp();
+
 		canvas.setStrokeColor(ColorConstants.RED);
 		canvas.stroke();
 		canvas.restoreState();
 		pdfDoc.close();
+	}
+
+	public void changeContentByLocation() throws IOException {
+		
+		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
+
+		Document doc = new Document(pdfDoc);
+		PageSize ps = pdfDoc.getDefaultPageSize();
+		final Rectangle rect = new Rectangle(89.25f, 747.0f, ps.getHeight() - 154.33798f - 12f, 12f);
+
+		// first clean the content
+		List cleanUpLocations = new ArrayList();
+		cleanUpLocations.add(new PdfCleanUpLocation(1, rect));
+		PdfCleanUpTool cleaner = new PdfCleanUpTool(pdfDoc, cleanUpLocations);
+		cleaner.cleanUp();
+
+		Paragraph paragraph = new Paragraph("124 My Street");
+
+		// Creating fonts from StandardFonts in itext's library
+//		PdfFont font = PdfFontFactory.createFont(StandardFonts.TIMES_ITALIC);
+
+		// Creating fonts from .ttf files
+		FontProgram fontProgram = FontProgramFactory.createFont(CARDO_REGULAR);
+		PdfFont font = PdfFontFactory.createFont(fontProgram, PdfEncodings.WINANSI, true);
+		
+		paragraph.setFont(font);
+		paragraph.setFontSize(9);
+		paragraph.setNextRenderer(new ParagraphRenderer(paragraph) {
+			@Override
+			public List initElementAreas(LayoutArea area) {
+				List list = new ArrayList();
+				list.add(rect);
+				return list;
+			}
+		});
+		doc.add(paragraph);
+		doc.close();
 	}
 
 	private void ParseActualTextFromStreamBytes(PdfStream stream) throws FileNotFoundException, IOException {
@@ -209,9 +282,10 @@ public class App {
 	}
 
 	public void extractTextFromRectArea(String src, Rectangle rect, PdfCanvas canvas) throws IOException {
-		PdfDocument pdfDoc = new PdfDocument(new PdfReader(src));
+		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
+//		PdfDocument pdfDoc = new PdfDocument(new PdfReader(src));
 		StringBuilder strBuilder = new StringBuilder();
-		CustomTextRegionEventFilter regionFilter = new CustomTextRegionEventFilter(rect, canvas, strBuilder);
+		CustomTextRegionEventFilter regionFilter = new CustomTextRegionEventFilter(rect, canvas, strBuilder, pdfDoc);
 		CustomFilteredEventListener listener = new CustomFilteredEventListener();
 
 		LocationTextExtractionStrategy extractionStrategy = listener
@@ -225,15 +299,16 @@ public class App {
 		new PdfCanvasProcessor(listener).processPageContent(pdfDoc.getFirstPage());
 		String actualText = extractionStrategy.getResultantText();
 		System.out.println("actualText: " + actualText);
-		
+
 		System.out.println("strBuilder:" + strBuilder.toString());
 		System.out.println("words.length:" + strBuilder.toString().split(" ").length);
-		
-		System.out.println("strBuilder.splitted:");
-		for(String item : strBuilder.toString().split(" ")) {
-			System.out.println(item);
-		}
-		
+
+		// print strBuilder which contain content line by line
+//		System.out.println("strBuilder.splitted:");
+//		for (String item : strBuilder.toString().split(" ")) {
+//			System.out.println(item);
+//		}
+
 		pdfDoc.close();
 	}
 }

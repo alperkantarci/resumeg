@@ -15,7 +15,6 @@ public class CustomFilteredEventListener implements IEventListener {
 	protected final List<IEventListener> delegates;
 	protected final List<IEventFilter[]> filters;
 	
-	
 
 	/**
 	 * Constructs a {@link FilteredEventListener} empty instance. Use
