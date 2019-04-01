@@ -12,6 +12,8 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -350,16 +352,41 @@ public class App {
 
 		// Creating fonts from google's webfonts api
 		System.out.println("Google fonts:");
-		for(Webfont item : new GoogleWebFontService().getFontList().getItems()) {
-			System.out.println(item.getFamily());
-		}
+		GoogleWebFontService webFontService = new GoogleWebFontService();
+		Webfonts webFonts = webFontService.getWebFonts();
+		WebfontList fontList = webFontService.getFontList();
 		
+		long startTime = System.nanoTime();
+		fontList.getItems().stream().filter(e -> e.getFamily().equals("Roboto")).forEach(e -> System.out.println(e.getFiles()));
+		long endTime   = System.nanoTime();
+		long totalTime = endTime - startTime;
+		System.out.println("totalTime filter:" + totalTime);
+
+		long startTime2 = System.nanoTime();
+		for (Webfont item : fontList.getItems()) {
+			if (item.getFamily().equals("Roboto")) {
+				System.out.println(item.getFiles());
+				long endTime2   = System.nanoTime();
+				long totalTime2 = endTime2 - startTime2;
+				System.out.println("totalTime for:" + totalTime2);
+//				item.getFiles().entrySet().stream().filter(e -> e.getKey().equals("100"))
+//						.forEach(e -> System.out.println(e.getValue()));
+//				for (Map.Entry<String, String> entry : item.getFiles().entrySet()) {
+//					System.out.println(entry.getKey());
+////				    System.out.println(entry.getKey() + "\t" + entry.getValue());
+////					FontProgram fontProgram = FontProgramFactory.createFont(
+////							entry.getValue());
+////					System.out.println(fontProgram.getFontNames().getFontName());
+//				}
+			}
+		}
+
 		// vanilla java font downloader
 		// RobotoCondensed-Light url ->
 		// http://fonts.gstatic.com/s/robotocondensed/v17/ieVi2ZhZI2eCN5jzbjEETS9weq8-33mZKCMSbvtdYyQ.ttf
-		FontProgram fontProgram = FontProgramFactory.createFont(
-				"http://fonts.gstatic.com/s/robotocondensed/v17/ieVi2ZhZI2eCN5jzbjEETS9weq8-33mZKCMSbvtdYyQ.ttf");
-		System.out.println(fontProgram.getFontNames().getFontName());
+//		FontProgram fontProgram = FontProgramFactory.createFont(
+//				"http://fonts.gstatic.com/s/robotocondensed/v17/ieVi2ZhZI2eCN5jzbjEETS9weq8-33mZKCMSbvtdYyQ.ttf");
+//		System.out.println(fontProgram.getFontNames().getFontName());
 	}
 
 	private void ParseActualTextFromStreamBytes(PdfStream stream) throws FileNotFoundException, IOException {
