@@ -1,17 +1,42 @@
 package com.etp.resumeg.resumeg;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontFormatException;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.security.sasl.AuthenticationException;
+
 import org.apache.log4j.BasicConfigurator;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.LowLevelHttpRequest;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.webfonts.Webfonts;
+import com.google.api.services.webfonts.Webfonts.Builder;
+import com.google.api.services.webfonts.Webfonts.WebfontsOperations;
+import com.google.api.services.webfonts.WebfontsRequest;
+import com.google.api.services.webfonts.WebfontsRequestInitializer;
+import com.google.api.services.webfonts.model.Webfont;
+import com.google.api.services.webfonts.model.WebfontList;
 import com.itextpdf.io.font.FontProgram;
 import com.itextpdf.io.font.FontProgramFactory;
 import com.itextpdf.io.font.PdfEncodings;
@@ -22,8 +47,10 @@ import com.itextpdf.io.source.RandomAccessSourceFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.geom.Matrix;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.geom.Rectangle;
+import com.itextpdf.kernel.geom.Vector;
 import com.itextpdf.kernel.pdf.PdfDictionary;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfName;
@@ -32,18 +59,31 @@ import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfStream;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.canvas.CanvasGraphicsState;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfCanvasProcessor;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
+import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
 import com.itextpdf.kernel.pdf.canvas.parser.listener.LocationTextExtractionStrategy;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.borders.DottedBorder;
+import com.itextpdf.layout.element.Div;
 import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.layout.LayoutArea;
+import com.itextpdf.layout.property.VerticalAlignment;
 import com.itextpdf.layout.renderer.ParagraphRenderer;
 import com.itextpdf.pdfcleanup.PdfCleanUpLocation;
 import com.itextpdf.pdfcleanup.PdfCleanUpTool;
 
 public class App {
+
+	public App() {
+		newContent.put("123 your street", "124 MY STREET");
+		newContent.put("your city, st 12345", "MY CITY, ST 54321");
+		newContent.put("(123) 456-7890", "(553) 654-0987");
+		newContent.put("no_reply@example.com", "TEST@TEST.COM");
+	}
 
 	// Paths
 	public static final String SRC_HELLO = "pdf/input/hello.pdf";
@@ -51,9 +91,15 @@ public class App {
 	public static final String SRC_RESUME = "pdf/input/Resume2.pdf";
 	public static final String DEST = "pdf/output/parsedStream";
 	public static final String OUT_PDF = "pdf/output/testOutput.pdf";
-	
-	// Fonts
-	public static final String CARDO_REGULAR = "resources/fonts/RobotoCondensed-Regular.ttf";
+
+	// Font resources
+	public static final String ROBOTO_REGULAR = "resources/fonts/RobotoCondensed-Regular.ttf";
+
+	// New content for pdf
+	public static final HashMap<String, String> newContent = new HashMap<String, String>();
+
+	// Font
+	public static List<TextRenderInfo> renderInfos = new ArrayList<TextRenderInfo>();
 
 	public static void main(String[] args) throws Exception {
 //		new App().createDirs();
@@ -62,9 +108,9 @@ public class App {
 //		new App().getAllPdfObjectsAsStream();
 
 		BasicConfigurator.configure();
-//		new App().manipulatePdf();
+		new App().manipulatePdf();
 //		new App().replaceContentStream(SRC_RESUME, OUT_PDF);
-		new App().changeContentByLocation();
+
 	}
 
 	private void parsePdf() throws IOException {
@@ -181,7 +227,7 @@ public class App {
 		// Stamping content
 
 //		 "EDUCATION" rect, Resume2.pdf
-		extractTextFromRectArea(SRC_RESUME, new Rectangle(89.25f, 232.5f, 54f, 16f), canvas);
+		extractTextFromRectArea(pdfDoc, new Rectangle(89.25f, 232.5f, 54f, 16f), canvas);
 
 ////		 "Name" rect, Resume.pdf
 //		extractTextFromRectArea(SRC_RESUME, new Rectangle(145.2675f, 708.0f, 116f, 48f), canvas);
@@ -205,44 +251,115 @@ public class App {
 		canvas.setStrokeColor(ColorConstants.RED);
 		canvas.stroke();
 		canvas.restoreState();
+
+		changeContentByLocation(pdfDoc);
+
 		pdfDoc.close();
 	}
 
-	public void changeContentByLocation() throws IOException {
-		
-		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
+	public static void changeContentByLocation(PdfDocument pdfDocument) throws IOException, GeneralSecurityException {
+		PdfDocument pdfDoc = pdfDocument;
+//		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
 
 		Document doc = new Document(pdfDoc);
+
 		PageSize ps = pdfDoc.getDefaultPageSize();
-		final Rectangle rect = new Rectangle(89.25f, 747.0f, ps.getHeight() - 154.33798f - 12f, 12f);
 
-		// first clean the content
-		List cleanUpLocations = new ArrayList();
-		cleanUpLocations.add(new PdfCleanUpLocation(1, rect));
-		PdfCleanUpTool cleaner = new PdfCleanUpTool(pdfDoc, cleanUpLocations);
-		cleaner.cleanUp();
+		Rectangle rect;
+		float transformedFontSize = 0;
 
-		Paragraph paragraph = new Paragraph("124 My Street");
+		float x1 = 0;
+		float x2 = 0;
+		float y1 = 0;
+		float y2 = 0;
 
-		// Creating fonts from StandardFonts in itext's library
-//		PdfFont font = PdfFontFactory.createFont(StandardFonts.TIMES_ITALIC);
+		int i = 0;
 
-		// Creating fonts from .ttf files
-		FontProgram fontProgram = FontProgramFactory.createFont(CARDO_REGULAR);
-		PdfFont font = PdfFontFactory.createFont(fontProgram, PdfEncodings.WINANSI, true);
+		// First clean all texts by location
+		for (TextRenderInfo item : renderInfos) {
+			TextRenderInfo textRenderInfo = item;
+
+			System.out.println("realText:" + textRenderInfo.getText());
+			x1 = textRenderInfo.getBaseline().getStartPoint().get(Vector.I1);
+			x2 = textRenderInfo.getBaseline().getEndPoint().get(Vector.I1);
+			y1 = textRenderInfo.getBaseline().getStartPoint().get(Vector.I2);
+			y2 = textRenderInfo.getBaseline().getEndPoint().get(Vector.I2);
+
+			// real Font size calculation
+			CanvasGraphicsState canvasGs = item.getGraphicsState();
+			Matrix textToUserSpaceTransformMatrix = canvasGs.getCtm();
+			transformedFontSize = new Vector(0, canvasGs.getFontSize(), 0).cross(textToUserSpaceTransformMatrix)
+					.length();
+
+			rect = new Rectangle(x1, y1 + 1, x2, transformedFontSize);
+
+			System.out.println("x1:" + x1 + " y1:" + y1 + ", x2:" + x2 + ", fontSize:" + transformedFontSize);
+			System.out.println("pageHeight:" + pdfDoc.getFirstPage().getPageSize().getHeight());
+
+			// first clean the content
+			List cleanUpLocations = new ArrayList();
+			cleanUpLocations.add(new PdfCleanUpLocation(1, rect));
+			PdfCleanUpTool cleaner = new PdfCleanUpTool(pdfDoc, cleanUpLocations);
+			cleaner.cleanUp();
+		}
+
+		// Then fill with new content
+		for (TextRenderInfo item : renderInfos) {
+			x1 = item.getBaseline().getStartPoint().get(Vector.I1);
+			x2 = item.getBaseline().getEndPoint().get(Vector.I1);
+			y1 = item.getBaseline().getStartPoint().get(Vector.I2);
+			y2 = item.getBaseline().getEndPoint().get(Vector.I2);
+
+			float charWidth = (x2 - x1) / item.getText().length();
+			float wordWidth = x2 - x1;
+			System.out.println("charWidth:" + charWidth + ", wordWidth:" + wordWidth);
+
+			// real Font size calculation
+			CanvasGraphicsState canvasGs = item.getGraphicsState();
+			Matrix textToUserSpaceTransformMatrix = canvasGs.getCtm();
+			transformedFontSize = new Vector(0, canvasGs.getFontSize(), 0).cross(textToUserSpaceTransformMatrix)
+					.length();
+
+			rect = new Rectangle(x1, y1, x2, transformedFontSize);
+
+			// Create paragraph
+			String newText = newContent.get(item.getText().toLowerCase());
+			// rectangle's x2 value
+			float newTextWidth = charWidth * newText.length() + 0.5f;
+			Paragraph paragraph = new Paragraph(newText);
+
+			// Creating fonts from StandardFonts in itext's library
+//				PdfFont font = PdfFontFactory.createFont(StandardFonts.TIMES_ITALIC);
+
+			// Creating fonts from .ttf files
+			FontProgram fontProgram = FontProgramFactory.createFont(ROBOTO_REGULAR);
+			PdfFont font = PdfFontFactory.createFont(fontProgram, PdfEncodings.WINANSI, true);
+
+			paragraph.setFontSize(transformedFontSize);
+			// sets leading equal to fontsize
+			paragraph.setMultipliedLeading(0.6f);
+			paragraph.setFontColor(item.getStrokeColor());
+			paragraph.setFont(font);
+//				paragraph.setFont(actualRenderInfo.getFont());
+			paragraph.setFixedPosition(x1, y1, newTextWidth);
+			paragraph.setBorder(new DottedBorder(0.3f));
+
+			doc.add(paragraph);
+			item.releaseGraphicsState();
+		}
+
+		// Creating fonts from google's webfonts api
+		System.out.println("Google fonts:");
+		for(Webfont item : new GoogleWebFontService().getFontList().getItems()) {
+			System.out.println(item.getFamily());
+		}
 		
-		paragraph.setFont(font);
-		paragraph.setFontSize(9);
-		paragraph.setNextRenderer(new ParagraphRenderer(paragraph) {
-			@Override
-			public List initElementAreas(LayoutArea area) {
-				List list = new ArrayList();
-				list.add(rect);
-				return list;
-			}
-		});
-		doc.add(paragraph);
-		doc.close();
+		// vanilla java font downloader
+		// RobotoCondensed-Light url ->
+		// http://fonts.gstatic.com/s/robotocondensed/v17/ieVi2ZhZI2eCN5jzbjEETS9weq8-33mZKCMSbvtdYyQ.ttf
+		FontProgram fontProgram = FontProgramFactory.createFont(
+				"http://fonts.gstatic.com/s/robotocondensed/v17/ieVi2ZhZI2eCN5jzbjEETS9weq8-33mZKCMSbvtdYyQ.ttf");
+		System.out.println(fontProgram.getFontNames().getFontName());
 	}
 
 	private void ParseActualTextFromStreamBytes(PdfStream stream) throws FileNotFoundException, IOException {
@@ -281,18 +398,17 @@ public class App {
 //		file.getParentFile().mkdirs();
 	}
 
-	public void extractTextFromRectArea(String src, Rectangle rect, PdfCanvas canvas) throws IOException {
-		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
-//		PdfDocument pdfDoc = new PdfDocument(new PdfReader(src));
+	public void extractTextFromRectArea(PdfDocument pdfDocument, Rectangle rect, PdfCanvas canvas) throws IOException {
+		PdfDocument pdfDoc = pdfDocument;
+		// PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new
+		// PdfWriter(OUT_PDF));
 		StringBuilder strBuilder = new StringBuilder();
-		CustomTextRegionEventFilter regionFilter = new CustomTextRegionEventFilter(rect, canvas, strBuilder, pdfDoc);
+		CustomTextRegionEventFilter regionFilter = new CustomTextRegionEventFilter(rect, canvas, strBuilder, pdfDoc,
+				renderInfos);
 		CustomFilteredEventListener listener = new CustomFilteredEventListener();
 
 		LocationTextExtractionStrategy extractionStrategy = listener
 				.attachEventListener(new LocationTextExtractionStrategy(), regionFilter);
-
-//		System.out.println(PdfTextExtractor.getTextFromPage(pdfDoc.getFirstPage(), extractionStrategy));
-//		new PdfCanvasProcessor(listener).processPageContent(pdfDoc.getFirstPage());
 
 //		canvas.fill();
 
@@ -309,6 +425,6 @@ public class App {
 //			System.out.println(item);
 //		}
 
-		pdfDoc.close();
+//		pdfDoc.close();
 	}
 }
