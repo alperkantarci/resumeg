@@ -1,13 +1,18 @@
 package com.etp.resumeg.resumeg;
 
 import java.io.IOException;
+import java.util.Map.Entry;
 
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.webfonts.Webfonts;
+import com.google.api.services.webfonts.model.Webfont;
 import com.google.api.services.webfonts.model.WebfontList;
+import com.itextpdf.io.font.FontProgram;
+import com.itextpdf.io.font.FontProgramFactory;
+import com.itextpdf.kernel.font.PdfFont;
 
 public class GoogleWebFontService {
 	// API Key: AIzaSyDfSsn4RIfbYsY82qGaqnLEQTlUJ_R1mDM
@@ -29,6 +34,27 @@ public class GoogleWebFontService {
 				// TODO Auto-generated method stub
 			}
 		}).setApplicationName(APPLICATION_NAME).build());
+	}
+	
+	public FontProgram downloadFontByFamily(String family, String variant) throws IOException {
+		for(Webfont item : this.getFontList().getItems()) {
+			// Font Family found in all google fonts list
+			if(item.getFamily().equals(family)) {
+				System.out.println("Font found:" + item.getFamily());
+				for(Entry<String, String> file : item.getFiles().entrySet()) {
+					// Font variant found in files
+					if(file.getKey().equals(variant.toLowerCase())) {
+						System.out.println("file:" + file.getValue());
+						// Download and create FontProgram object from file link
+						// file.getValue() -> font file's download url
+						// file.getKey() -> font file's variant name
+						return FontProgramFactory.createFont(file.getValue());
+					}
+				}
+			}
+		}
+		
+		return null;
 	}
 
 	public WebfontList getFontList() throws IOException {

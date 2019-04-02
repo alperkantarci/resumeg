@@ -100,7 +100,7 @@ public class CustomTextRegionEventFilter implements IEventFilter {
 //				System.out.println("one char width:" + (x2 - x1)  / renderInfo.getText().toCharArray().length);
 				
 //				System.out.println("charSpacing:" + renderInfo);
-//				this.pdfCanvas.rectangle(rect);
+				this.pdfCanvas.rectangle(rect);
 			}
 			// print all elements in pdf
 
