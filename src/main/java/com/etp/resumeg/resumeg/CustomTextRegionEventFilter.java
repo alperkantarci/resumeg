@@ -59,6 +59,7 @@ public class CustomTextRegionEventFilter implements IEventFilter {
 		if (type.equals(EventType.RENDER_TEXT)) {
 			System.out.println("==============================");
 			TextRenderInfo renderInfo = (TextRenderInfo) data;
+			System.out.print(renderInfo.getText());
 
 			LineSegment segment = renderInfo.getBaseline();
 
@@ -70,20 +71,28 @@ public class CustomTextRegionEventFilter implements IEventFilter {
 			float y1 = startPoint.get(Vector.I2);
 			float x2 = endPoint.get(Vector.I1);
 			float y2 = endPoint.get(Vector.I2);
+			
+			float pageH = this.doc.getFirstPage().getPageSize().getHeight();
+			float pageW = this.doc.getFirstPage().getPageSize().getHeight();
+			// try to find margins or paddings
+			
+			System.out.println("Page width:" + pageW);
+			System.out.println("Trim box: " + this.doc.getFirstPage().getPageSize().getRight());
+			
 
 			this.content.append(renderInfo.getText());
 
 			// Pattern for special chars only
 //			Pattern pattern = Pattern.compile("[a-zA-Z0-9]*");
-			
+
 			// Pattern for "non word" chars
 //			Pattern pattern = Pattern.compile("(\\W)");
-			
+
 			// Pattern for "everything"
 //			Pattern pattern = Pattern.compile(".");
-			
+
 			Pattern pattern = Pattern.compile("\\u00A0");
-			
+
 			Matcher matcher = pattern.matcher(renderInfo.getText());
 
 //			float fontH = renderInfo.getFont().getFontProgram().getFontMetrics().getTypoAscender() / 100;
@@ -94,19 +103,29 @@ public class CustomTextRegionEventFilter implements IEventFilter {
 			Matrix textToUserSpaceTransformMatrix = canvasGs.getCtm();
 			float transformedFontSize = new Vector(0, canvasGs.getFontSize(), 0).cross(textToUserSpaceTransformMatrix)
 					.length();
-//			System.out.println("transformedFontSize:" + transformedFontSize);
+			transformedFontSize = (float) Math.ceil(transformedFontSize);
 
-			Rectangle rect = new Rectangle(startPoint.get(0), 792 - startPoint.get(1) - transformedFontSize, x2 - x1, transformedFontSize);
+			Rectangle rect = new Rectangle(startPoint.get(0),
+					pageH - startPoint.get(1) - transformedFontSize,
+					x2 - x1, transformedFontSize);
 			
-//			this.pdfCanvas.rectangle(rect);
-			
-			if(renderInfo.getText().length() == 1) {
+//			Rectangle rect = new Rectangle(startPoint.get(0),
+//					this.doc.getFirstPage().getPageSize().getHeight() - startPoint.get(1) - renderInfo.getFontSize(),
+//					x2 - x1, renderInfo.getFontSize());
+
+			System.out.println(
+					"id:" + data.hashCode() + String.format("(%s => %s)", renderInfo.getText(), !matcher.matches())
+							+ "=> " + x1 + "f, " + y1 + "f, " + x2 + "f, " + renderInfo.getFontSize() + "f");
+
+			this.pdfCanvas.rectangle(rect);
+
+			if (renderInfo.getText().length() == 1) {
 				System.out.println((char) renderInfo.getText().toCharArray()[0]);
-				if(matcher.matches()) {
+				if (matcher.matches()) {
 					this.pdfCanvas.rectangle(rect);
 				}
 			}
-			
+
 //			System.out.println();
 //			if(renderInfo.getText().equals(" ")) {
 //				this.pdfCanvas.rectangle(rect);
@@ -183,7 +202,6 @@ public class CustomTextRegionEventFilter implements IEventFilter {
 //								Character.isLetterOrDigit(renderInfo.getText().charAt(0)))
 //						+ "=> " + x1 + "f, " + y1 + "f, " + x2 + "f, " + renderInfo.getFontSize() + "f");
 //			}
-			
 
 			return filterRect == null || filterRect.intersectsLine(x1, y1, x2, y2);
 		} else {
