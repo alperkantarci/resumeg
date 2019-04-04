@@ -33,7 +33,15 @@ public class GoogleWebFontService {
 	private Webfonts webFonts = null;
 	private WebfontList fonts = null;
 
-	private final Map<String, String> GoogleFontVariants = Map.of("bold", "700", "regular", "regular");
+	private final Map<String, String> GoogleFontVariants = Map.of(
+			"thin", "100",
+			"extra-light", "200",
+			"light", "300",
+			"regular", "regular",
+			"medium", "500",
+			"semi-bold", "600",
+			"bold", "700",
+			"black", "900");
 
 	public GoogleWebFontService() {
 		setWebFonts(new Webfonts.Builder(httpTransport, jacksonFactory, new HttpRequestInitializer() {
@@ -52,7 +60,6 @@ public class GoogleWebFontService {
 //				System.out.println("Font found:" + item.getFamily());
 				for (Entry<String, String> file : item.getFiles().entrySet()) {
 					// Font variant found in files
-//					System.out.println(file.getKey());
 					if (file.getKey().equals(GoogleFontVariants.get(variant.toLowerCase()))) {
 						System.out.println("Font found:" + item.getFamily() + "-" + variant);
 						// Download and create FontProgram object from file link
