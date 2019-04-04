@@ -57,6 +57,7 @@ public class CustomTextRegionEventFilter implements IEventFilter {
 
 	public boolean accept(IEventData data, EventType type) {
 		if (type.equals(EventType.RENDER_TEXT)) {
+			System.out.println("==============================");
 			TextRenderInfo renderInfo = (TextRenderInfo) data;
 
 			LineSegment segment = renderInfo.getBaseline();
@@ -72,83 +73,105 @@ public class CustomTextRegionEventFilter implements IEventFilter {
 
 			this.content.append(renderInfo.getText());
 
-			// Patter for special chars only
-			Pattern pattern = Pattern.compile("[a-zA-Z0-9 ]*");
-			Matcher matcher = pattern.matcher(renderInfo.getText());
+			// Pattern for special chars only
+//			Pattern pattern = Pattern.compile("[a-zA-Z0-9]*");
 			
+			// Pattern for "non word" chars
+//			Pattern pattern = Pattern.compile("(\\W)");
+			
+			// Pattern for "everything"
+//			Pattern pattern = Pattern.compile(".");
+			
+			Pattern pattern = Pattern.compile("\\u00A0");
+			
+			Matcher matcher = pattern.matcher(renderInfo.getText());
+
 //			float fontH = renderInfo.getFont().getFontProgram().getFontMetrics().getTypoAscender() / 100;
 			float fontH = renderInfo.getFontSize();
-			
-			Rectangle rect = new Rectangle(startPoint.get(0), 792 - startPoint.get(1) - fontH, x2 - x1,
-					fontH);
-			
-			// real font size calculation
-//			CanvasGraphicsState canvasGs = renderInfo.getGraphicsState();
-//		    Matrix textToUserSpaceTransformMatrix = canvasGs.getCtm();
-//		    float transformedFontSize = new Vector(0, canvasGs.getFontSize(), 0).cross(textToUserSpaceTransformMatrix).length();
-//		    System.out.println("transformedFontSize:" + transformedFontSize);
-		    
-			if (Character.isLetterOrDigit(renderInfo.getText().charAt(0))) {
-				System.out.println(
-						"id:" + data.hashCode() + String.format("(%s => %s)", renderInfo.getText(), !matcher.matches())
-								+ "=> " + x1 + "f, " + y1 + "f, " + x2 + "f, " + renderInfo.getFontSize() + "f");
 
-				// one char width of "123 YOUR STREET" text
-//				System.out.println("getText:" + renderInfo.getText());
-//				System.out.println("one char width:" + (x2 - x1) / renderInfo.getText().toCharArray().length);
-				System.out.println("realWidth:" + ((x2 - x1)));
-//				System.out.println("one char width:" + (x2 - x1)  / renderInfo.getText().toCharArray().length);
-				
-//				System.out.println("charSpacing:" + renderInfo);
-				this.pdfCanvas.rectangle(rect);
+			// real font size calculation
+			CanvasGraphicsState canvasGs = renderInfo.getGraphicsState();
+			Matrix textToUserSpaceTransformMatrix = canvasGs.getCtm();
+			float transformedFontSize = new Vector(0, canvasGs.getFontSize(), 0).cross(textToUserSpaceTransformMatrix)
+					.length();
+//			System.out.println("transformedFontSize:" + transformedFontSize);
+
+			Rectangle rect = new Rectangle(startPoint.get(0), 792 - startPoint.get(1) - transformedFontSize, x2 - x1, transformedFontSize);
+			
+//			this.pdfCanvas.rectangle(rect);
+			
+			if(renderInfo.getText().length() == 1) {
+				System.out.println((char) renderInfo.getText().toCharArray()[0]);
+				if(matcher.matches()) {
+					this.pdfCanvas.rectangle(rect);
+				}
 			}
+			
+//			System.out.println();
+//			if(renderInfo.getText().equals(" ")) {
+//				this.pdfCanvas.rectangle(rect);
+//			}
+
+//			if (Character.isLetterOrDigit(renderInfo.getText().charAt(0)) || matcher.matches()) {
+//				System.out.println(
+//						"id:" + data.hashCode() + String.format("(%s => %s)", renderInfo.getText(), !matcher.matches())
+//								+ "=> " + x1 + "f, " + y1 + "f, " + x2 + "f, " + transformedFontSize + "f");
+//
+//				// one char width of "123 YOUR STREET" text
+////				System.out.println("getText:" + renderInfo.getText());
+////				System.out.println("one char width:" + (x2 - x1) / renderInfo.getText().toCharArray().length);
+//				System.out.println("realWidth:" + ((x2 - x1)));
+////				System.out.println("one char width:" + (x2 - x1)  / renderInfo.getText().toCharArray().length);
+//
+////				System.out.println("charSpacing:" + renderInfo);
+//				this.pdfCanvas.rectangle(rect);
+//			}
 			// print all elements in pdf
 
 //			Rectangle rect = new Rectangle(startPoint.get(0), 792 - startPoint.get(1) - renderInfo.getFontSize(), x2,
 //					renderInfo.getFontSize());
-			
-			if(renderInfo.getText().toLowerCase().equals("no_reply@example.com")){
-				renderInfo.preserveGraphicsState();
-				this.renderInfos.add(renderInfo);
-//				this.pdfCanvas.rectangle(rect);
-			}
-			
-			if(renderInfo.getText().toLowerCase().equals("your city, st 12345")){
-				renderInfo.preserveGraphicsState();
-				this.renderInfos.add(renderInfo);
-//				this.pdfCanvas.rectangle(rect);
-			}
-			
-			if(renderInfo.getText().toLowerCase().equals("(123) 456-7890")){
-				renderInfo.preserveGraphicsState();
-				this.renderInfos.add(renderInfo);
-//				this.pdfCanvas.rectangle(rect);
-			}
 
-			if (renderInfo.getText().toLowerCase().equals("123 your street")) {
-				System.out.println("CustomTextRegionEventFilter.class:");
-				System.out.println("\tid:" + data.hashCode()
-						+ String.format("(%s => %s)", renderInfo.getText(), !matcher.matches()) + "=> " + x1 + "f, "
-						+ y1 + "f, " + x2 + "f, " + y2 + "f");
-				
-				
-//			    System.out.println("transformedFontSize:" + transformedFontSize);
-			    	
-				// draw rectangle in canvas
-//				this.pdfCanvas.rectangle(rect);
+//			if (renderInfo.getText().toLowerCase().equals("no_reply@example.com")) {
+//				renderInfo.preserveGraphicsState();
+//				this.renderInfos.add(renderInfo);
+////				this.pdfCanvas.rectangle(rect);
+//			}
 
-				System.out.println("\t123 your street fontSize:" + renderInfo.getFontSize());
-				System.out.println("\tfont info:");
-				PdfFont renderFont = renderInfo.getFont();
+//			if (renderInfo.getText().toLowerCase().equals("your city, st 12345")) {
+//				renderInfo.preserveGraphicsState();
+//				this.renderInfos.add(renderInfo);
+////				this.pdfCanvas.rectangle(rect);
+//			}
 
-				// we need to preserveGraphicState()
-				// because we need to access this renderInfo object in App.class after
-				renderInfo.preserveGraphicsState();
+//			if (renderInfo.getText().toLowerCase().equals("(123) 456-7890")) {
+//				renderInfo.preserveGraphicsState();
+//				this.renderInfos.add(renderInfo);
+////				this.pdfCanvas.rectangle(rect);
+//			}
 
-				this.renderInfos.add(renderInfo);
-//				System.out.println("fonts.size() in Custom:" + fonts.size());
-				System.out.println("============================");
-			}
+//			if (renderInfo.getText().toLowerCase().equals("123 your street")) {
+////				System.out.println("CustomTextRegionEventFilter.class:");
+////				System.out.println("\tid:" + data.hashCode()
+////						+ String.format("(%s => %s)", renderInfo.getText(), !matcher.matches()) + "=> " + x1 + "f, "
+////						+ y1 + "f, " + x2 + "f, " + y2 + "f");
+//
+////			    System.out.println("transformedFontSize:" + transformedFontSize);
+//
+//				// draw rectangle in canvas
+////				this.pdfCanvas.rectangle(rect);
+//
+////				System.out.println("\t123 your street fontSize:" + renderInfo.getFontSize());
+////				System.out.println("\tfont info:");
+////				PdfFont renderFont = renderInfo.getFont();
+//
+//				// we need to preserveGraphicState()
+//				// because we need to access this renderInfo object in App.class after
+//				renderInfo.preserveGraphicsState();
+//
+//				this.renderInfos.add(renderInfo);
+////				System.out.println("fonts.size() in Custom:" + fonts.size());
+////				System.out.println("============================");
+//			}
 
 			// print only letters or digits
 //			if (Character.isLetterOrDigit(renderInfo.getText().charAt(0))) {
@@ -160,6 +183,7 @@ public class CustomTextRegionEventFilter implements IEventFilter {
 //								Character.isLetterOrDigit(renderInfo.getText().charAt(0)))
 //						+ "=> " + x1 + "f, " + y1 + "f, " + x2 + "f, " + renderInfo.getFontSize() + "f");
 //			}
+			
 
 			return filterRect == null || filterRect.intersectsLine(x1, y1, x2, y2);
 		} else {

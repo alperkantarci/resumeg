@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -113,8 +115,10 @@ public class App {
 //		new App().getAllPdfObjectsAsStream();
 
 		BasicConfigurator.configure();
-		new App().manipulatePdf();
-//		new App().replaceContentStream(SRC_RESUME, OUT_PDF);
+		App app = new App();
+//		app.manipulatePdf();
+//		app.replaceContentStream(SRC_RESUME, OUT_PDF);
+		app.listFonts(SRC_RESUME);
 
 	}
 
@@ -141,6 +145,44 @@ public class App {
 //		document.close();
 	}
 
+//	public void parse(String src, String dest) throws IOException {
+//        PdfReader reader = new PdfReader(src);
+//        PdfObject obj;
+//        for (int i = 1; i <= reader.getLastXref(); i++) {
+//            obj = reader.getPdfObject(i);
+//            if (obj != null && obj.isStream()) {
+//                PRStream stream = (PRStream)obj;
+//                byte[] b;
+//                try {
+//                    b = PdfReader.getStreamBytes(stream);
+//                }
+//                catch(UnsupportedPdfException e) {
+//                    b = PdfReader.getStreamBytesRaw(stream);
+//                }
+//                FileOutputStream fos = new FileOutputStream(String.format(dest, i));
+//                fos.write(b);
+//                fos.flush();
+//                fos.close();
+//            }
+//        }
+//    }
+
+	public void listFonts(String src) throws IOException {
+		PdfDocument pdfDoc = new PdfDocument(new PdfReader(src));
+		PdfPage firstPage = pdfDoc.getFirstPage();
+		PdfDictionary dict = firstPage.getPdfObject();
+
+		PdfObject resourcesObject = dict.get(PdfName.Resources);
+		PdfDictionary resourcesDict = (PdfDictionary) resourcesObject;
+
+		PdfObject fontsObject = resourcesDict.get(PdfName.Font);
+		PdfDictionary fontDict = (PdfDictionary) fontsObject;
+
+		for (Entry<PdfName, PdfObject> item : fontDict.entrySet()) {
+			System.out.println(item.getKey() + ", " + item.getValue());
+		}
+	}
+
 	public void replaceContentStream(String src, String dest) throws IOException {
 		PdfDocument pdfDoc = new PdfDocument(new PdfReader(src), new PdfWriter(dest));
 		PdfPage firstPage = pdfDoc.getFirstPage();
@@ -149,8 +191,9 @@ public class App {
 
 		if (object instanceof PdfStream) {
 			PdfStream stream = (PdfStream) object;
+			System.out.println(stream.get(PdfName.Rect));
 			byte[] data = stream.getBytes();
-			System.out.println(new String(data));
+//			System.out.println(new String(data));
 			stream.setData(new String(data).replace("<027A>", "(HELLO WORLD)").getBytes("UTF-8"));
 		}
 		pdfDoc.close();
@@ -267,7 +310,6 @@ public class App {
 //		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
 
 		Document doc = new Document(pdfDoc);
-
 		PageSize ps = pdfDoc.getDefaultPageSize();
 
 		Rectangle rect;
@@ -277,8 +319,6 @@ public class App {
 		float x2 = 0;
 		float y1 = 0;
 		float y2 = 0;
-
-		int i = 0;
 
 		// First clean all texts by location
 		for (TextRenderInfo item : renderInfos) {
@@ -333,13 +373,7 @@ public class App {
 			float newTextWidth = charWidth * newText.length() + 0.5f;
 			Paragraph paragraph = new Paragraph(newText);
 
-//			System.out.println("Font:");
-//			for (String w : item.getFont().getFontProgram().getFontNames().getFontName().split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")) {
-//		        System.out.println(w);
-//		    }
-//			String[] fontCamelCaseSplit = item.getFont().getFontProgram().getFontNames().getFontName().replace("/([a-z])([A-Z])/g", "$1 $2");
-//			String fontFamily = 
-//			System.out.println("fontFamily:" + item.getFont().getFontProgram().getFontNames().getFullName()[0][3]);
+			// Font splitting by 'camel case' and '-'
 			String[] dashSplittedFontName = item.getFont().getFontProgram().getFontNames().getFontName().split("-");
 			String[] camelCaseFontFamilySplitted = dashSplittedFontName[0]
 					.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])");
@@ -348,7 +382,7 @@ public class App {
 			System.out.println("Font family:" + fontFamily + ", variant:" + fontVariant);
 
 			// Creating fonts from StandardFonts in itext's library
-//				PdfFont font = PdfFontFactory.createFont(StandardFonts.TIMES_ITALIC);
+//			PdfFont font = PdfFontFactory.createFont(StandardFonts.TIMES_ITALIC);
 
 			// Creating fonts from .ttf files
 			FontProgram fontProgram = FontProgramFactory.createFont(ROBOTO_REGULAR);
@@ -359,16 +393,15 @@ public class App {
 			paragraph.setMultipliedLeading(0.6f);
 			paragraph.setFontColor(item.getStrokeColor());
 			paragraph.setFont(font);
-//				paragraph.setFont(actualRenderInfo.getFont());
+//			paragraph.setFont(actualRenderInfo.getFont());
 			paragraph.setFixedPosition(x1, y1, newTextWidth);
 			paragraph.setBorder(new DottedBorder(0.3f));
 
 			doc.add(paragraph);
 			item.releaseGraphicsState();
 
-			testGoogleWebFonts(fontFamily, fontVariant);
+//			testGoogleWebFonts(fontFamily, fontVariant);
 		}
-
 	}
 
 	private void ParseActualTextFromStreamBytes(PdfStream stream) throws FileNotFoundException, IOException {
