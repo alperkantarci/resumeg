@@ -74,7 +74,6 @@ public class App {
 	public static GoogleWebFontService webFontService = null;
 
 	public static void main(String[] args) throws Exception {
-//		new App().createDirs();
 //		new App().helloWorldExample();
 //		new App().parsePdf();
 //		new App().getAllPdfObjectsAsStream();
