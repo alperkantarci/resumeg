@@ -2,7 +2,6 @@ package com.etp.resumeg.resumeg;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,12 +13,9 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.webfonts.Webfonts;
 import com.google.api.services.webfonts.model.Webfont;
 import com.google.api.services.webfonts.model.WebfontList;
-import com.itextpdf.io.font.FontProgram;
-import com.itextpdf.io.font.FontProgramFactory;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfDictionary;
-import com.itextpdf.kernel.pdf.PdfName;
 
 public class GoogleWebFontService {
 	// API Key: AIzaSyDfSsn4RIfbYsY82qGaqnLEQTlUJ_R1mDM
@@ -30,30 +26,22 @@ public class GoogleWebFontService {
 	private final NetHttpTransport httpTransport = new NetHttpTransport();
 	private final JacksonFactory jacksonFactory = new JacksonFactory();
 
-	private Webfonts webFonts = null;
+//	private Webfonts webFonts = null;
 	private WebfontList fonts = null;
 
-	private final Map<String, String> GoogleFontVariants = Map.of(
-			"thin", "100",
-			"extra-light", "200",
-			"light", "300",
-			"regular", "regular",
-			"medium", "500",
-			"semi-bold", "600",
-			"bold", "700",
-			"black", "900");
+	private final Map<String, String> GoogleFontVariants = Map.of("thin", "100", "extra-light", "200", "light", "300",
+			"regular", "regular", "medium", "500", "semi-bold", "600", "bold", "700", "black", "900");
 
-	public GoogleWebFontService() {
-		setWebFonts(new Webfonts.Builder(httpTransport, jacksonFactory, new HttpRequestInitializer() {
+	public GoogleWebFontService() throws IOException {
+		setFonts(new Webfonts.Builder(httpTransport, jacksonFactory, new HttpRequestInitializer() {
 			@Override
 			public void initialize(HttpRequest request) throws IOException {
 				// TODO Auto-generated method stub
 			}
-		}).setApplicationName(APPLICATION_NAME).build());
+		}).setApplicationName(APPLICATION_NAME).build().webfonts().list().setKey(WEBFONT_API_KEY).execute());
 	}
 
 	public PdfFont downloadFontByFamily(String family, String variant) throws IOException {
-		System.out.println();
 		for (Webfont item : this.getFontList().getItems()) {
 			// Font Family found in all google fonts list
 			if (item.getFamily().equals(family)) {
@@ -61,7 +49,8 @@ public class GoogleWebFontService {
 				for (Entry<String, String> file : item.getFiles().entrySet()) {
 					// Font variant found in files
 					if (file.getKey().equals(GoogleFontVariants.get(variant.toLowerCase()))) {
-						System.out.println("Font found:" + item.getFamily() + "-" + variant);
+//						System.out.println("Font found:" + item.getFamily() + "-" + variant);
+
 						// Download and create FontProgram object from file link
 						// file.getValue() -> font file's download url
 						// file.getKey() -> font file's variant name
@@ -79,16 +68,8 @@ public class GoogleWebFontService {
 		return fonts;
 	}
 
-	public WebfontList getFontList() throws IOException {
-		return webFonts.webfonts().list().setKey(WEBFONT_API_KEY).execute();
-	}
-
-	public Webfonts getWebFonts() {
-		return webFonts;
-	}
-
-	public void setWebFonts(Webfonts webFonts) {
-		this.webFonts = webFonts;
+	public WebfontList getFontList() {
+		return this.fonts;
 	}
 
 	public WebfontList getFonts() {
