@@ -2,6 +2,7 @@ package com.etp.resumeg.resumeg;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -29,10 +30,19 @@ public class GoogleWebFontService {
 //	private Webfonts webFonts = null;
 	private WebfontList fonts = null;
 
-	private final Map<String, String> GoogleFontVariants = Map.of("thin", "100", "extra-light", "200", "light", "300",
-			"regular", "regular", "medium", "500", "semi-bold", "600", "bold", "700", "black", "900");
+	private final Map<String, String> GoogleFontVariants = new HashMap<String, String>();
 
 	public GoogleWebFontService() throws IOException {
+		
+		GoogleFontVariants.put("thin", "100");
+		GoogleFontVariants.put("extra-light", "200");
+		GoogleFontVariants.put("light", "300");
+		GoogleFontVariants.put("regular", "regular");
+		GoogleFontVariants.put("medium", "500");
+		GoogleFontVariants.put("semi-bold", "600");
+		GoogleFontVariants.put("bold", "700");
+		GoogleFontVariants.put("black", "900");
+		
 		setFonts(new Webfonts.Builder(httpTransport, jacksonFactory, new HttpRequestInitializer() {
 			@Override
 			public void initialize(HttpRequest request) throws IOException {

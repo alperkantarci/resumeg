@@ -27,13 +27,14 @@ public class PdfContentCleanService {
 		pdfDoc.close();
 	}
 
-	public static void cleanContentByLocation(PdfDocument pdfDoc, Rectangle rectLocation) throws IOException {
+	public static void cleanContentByLocation(PdfDocument pdfDoc, Rectangle rectLocation, boolean closePdfDoc) throws IOException {
 		// Clean content
 		List<PdfCleanUpLocation> cleanUpLocations = new ArrayList<>();
 		cleanUpLocations.add(new PdfCleanUpLocation(1, rectLocation));
 		PdfCleanUpTool cleaner = new PdfCleanUpTool(pdfDoc, cleanUpLocations);
 		cleaner.cleanUp();
 
+		if(closePdfDoc)
 		pdfDoc.close();
 	}
 

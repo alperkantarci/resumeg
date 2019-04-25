@@ -47,10 +47,16 @@
 			<artifactId>google-api-services-webfonts</artifactId>
 			<version>v1-rev60-1.25.0</version>
 		</dependency>
+		<!-- cleanup & commons-imaging dependencies copied to /home/.m2/repository folder -->
 		<dependency>
 			<groupId>com.itextpdf</groupId>
 			<artifactId>cleanup</artifactId>
 			<version>2.0.3</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-imaging</groupId>
+			<artifactId>commons-imaging</artifactId>
+			<version>1.0a1</version>
 		</dependency>
 	</dependencies>
 </project>

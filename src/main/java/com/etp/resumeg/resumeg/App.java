@@ -18,9 +18,11 @@ import com.itextpdf.io.font.PdfEncodings;
 import com.itextpdf.io.source.PdfTokenizer;
 import com.itextpdf.io.source.RandomAccessFileOrArray;
 import com.itextpdf.io.source.RandomAccessSourceFactory;
+import com.itextpdf.kernel.colors.Color;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.geom.LineSegment;
 import com.itextpdf.kernel.geom.Matrix;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.geom.Vector;
@@ -36,6 +38,7 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.canvas.CanvasGraphicsState;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfCanvasProcessor;
+import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
 import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
 import com.itextpdf.kernel.pdf.canvas.parser.listener.FilteredEventListener;
 import com.itextpdf.kernel.pdf.canvas.parser.listener.LocationTextExtractionStrategy;
@@ -74,21 +77,127 @@ public class App {
 	public static void main(String[] args) throws Exception {
 		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
 
-		List<Rectangle> rectAreas = new ArrayList<>();
-		rectAreas.add(ExampleRectArea.rectangles.get("EDUCATION_Resume2"));
+		CustomITextExtractionStrategy customStrategy = new CustomITextExtractionStrategy();
+		// Extract text content by CustomITextExtractionStrategy class
+		PdfTextExtractor.getTextFromPage(pdfDoc.getFirstPage(), customStrategy);
+
+		System.out.println();
+//		System.out.println(customStrategy.getWords().size());
+
+		List<WordTextRenderInfo> captionWords = new ArrayList<WordTextRenderInfo>();
+		List<String> googleCaptionWords = new ArrayList<String>();
+		googleCaptionWords.add("SKILLS");
+		googleCaptionWords.add("EXPERIENCE");
+		googleCaptionWords.add("EDUCATION");
+		googleCaptionWords.add("AWARDS");
+
+		int upperCaseCountPerWord = 0;
+		for (WordTextRenderInfo item : customStrategy.getWords()) {
+			System.out.print(item.getContent().size() + " ->");
+			for (TextRenderInfo info : item.getContent()) {
+				System.out.print(info.getText());
+				if (testAllUpperCase(info.getText())) {
+					upperCaseCountPerWord++;
+				}
+			}
+			if (upperCaseCountPerWord == item.getContent().size() && item.getContent().size() > 1) {
+				if (googleCaptionWords.contains(item.getText())) {
+					captionWords.add(item);
+				}
+			}
+			upperCaseCountPerWord = 0;
+			System.out.println();
+		}
+
+		System.out.println("\nCaption words:");
+		for (WordTextRenderInfo item : captionWords) {
+			System.out.print("caption:");
+			for (TextRenderInfo info : item.getContent()) {
+				System.out.print(info.getText());
+			}
+			System.out.println();
+		}
+
+		// SKILLS caption
+		LineSegment skillsSegment = captionWords.get(0).getFirstChar().getBaseline();
+		Vector skillsStartPoint = skillsSegment.getStartPoint();
+		Vector skillsEndPoint = skillsSegment.getEndPoint();
+		float skillsY1 = skillsStartPoint.get(Vector.I2);
+		float skillsX1 = skillsStartPoint.get(Vector.I1);
+		float skillsY2 = skillsEndPoint.get(Vector.I2);
+
+		// EXPERIENCE caption
+		LineSegment experienceSegment = captionWords.get(1).getFirstChar().getBaseline();
+		Vector experienceEndPoint = experienceSegment.getEndPoint();
+		Vector experienceSartPoint = experienceSegment.getStartPoint();
+		float experienceY1 = experienceSartPoint.get(Vector.I2);
+		float experienceY2 = experienceEndPoint.get(Vector.I2);
+		float experienceFontSize = calculateRealFontSize(captionWords.get(1).getFirstChar());
+
+		// EDUCATION caption
+		LineSegment educationSegment = captionWords.get(2).getFirstChar().getBaseline();
+		Vector educationEndPoint = educationSegment.getEndPoint();
+		float educationY2 = educationEndPoint.get(Vector.I2);
+		float educationFontSize = calculateRealFontSize(captionWords.get(2).getFirstChar());
+		
+		float paragraphPadding = 10;
+
+		Rectangle rectBetweenSkillsAndExperience = new Rectangle(skillsX1, 792 - skillsY1 + paragraphPadding, skillsX1 + 400f,
+				skillsY1 - experienceY2 - experienceFontSize - 2*paragraphPadding);
+		Rectangle rectBetweenExperienceAndEducation = new Rectangle(skillsX1, 792 - experienceY1 + paragraphPadding, skillsX1 + 400f,
+				experienceY1 - educationY2 - educationFontSize - 2*paragraphPadding);
+		drawRectangleOnPdf(pdfDoc, rectBetweenSkillsAndExperience, ColorConstants.RED);
+		drawRectangleOnPdf(pdfDoc, rectBetweenExperienceAndEducation, ColorConstants.RED);
+		
+		Rectangle testRect = new Rectangle(skillsX1, 792 - skillsY1 + paragraphPadding, skillsX1 + 400f,
+				2f);
+		Rectangle testRect2 = new Rectangle(skillsX1, skillsY1 - experienceY2 - experienceFontSize - 2*paragraphPadding, skillsX1 + 400f,
+				10f);
+		drawRectangleOnPdf(pdfDoc, testRect, ColorConstants.BLACK);
+		drawRectangleOnPdf(pdfDoc, testRect2, ColorConstants.BLACK);
+		
+		System.out.println("getY:" + rectBetweenSkillsAndExperience.getY());
+		System.out.println("getBottom():" + rectBetweenSkillsAndExperience.getBottom());
+		System.out.println("getTop():" + rectBetweenSkillsAndExperience.getTop());
+		System.out.println("height:" + (skillsY1 - experienceY2 - experienceFontSize - 2*paragraphPadding));
+		System.out.println("getHeight():" + rectBetweenSkillsAndExperience.getHeight());
+		
+		
+		System.out.println("leftCorner:" + (792 - skillsY1 + paragraphPadding));
+		System.out.println("skillsY1 - experienceY2:" + (skillsY1 - experienceY2));
+		
+		
+		Rectangle cleanRectBetweenSkillsAndExperience = new Rectangle(skillsX1, experienceY1 + experienceFontSize + paragraphPadding, skillsX1 + 400f,
+				skillsY2 - experienceY2 - experienceFontSize - 2*paragraphPadding);
+//		Rectangle rectBetweenExperienceAndEducation = new Rectangle(skillsX1, 792 - experienceY1 + paragraphPadding, skillsX1 + 400f,
+//				experienceY1 - educationY2 - educationFontSize - 2*paragraphPadding);
+		
+		PdfContentCleanService.cleanContentByLocation(pdfDoc, cleanRectBetweenSkillsAndExperience, false);
+//		PdfContentCleanService.cleanContentByLocation(pdfDoc, rectBetweenExperienceAndEducation, false);
+		
+		pdfDoc.close();
+
+//		List<Rectangle> rectAreas = new ArrayList<>();
+//		rectAreas.add(ExampleRectArea.rectangles.get("EDUCATION_Resume2"));
 
 //		PdfContentCleanService.cleanContentByLocation(pdfDoc, rectAreas);
 //		PdfContentCleanService.cleanContentByLocation(SRC_RESUME, OUT_PDF,  rectAreas);
-		
-		// App.extractTextFromRectArea(SRC_RESUME,
-		// ExampleRectArea.rectangles.get("EDUCATION_Resume2"));
 
 //		BasicConfigurator.configure();
-//		app.drawRectangles(SRC_RESUME, OUT_PDF);
-//		App.downloadPdfFontsFromGoogleWebFontsApi();
 //		PdfContentCleanService.cleanContentByLocation(SRC_RESUME, OUT_PDF,  ExampleRectArea.rectangles.get("EDUCATION_Resume2"));
 //		PdfContentCleanService.cleanContentByLocation(pdfDoc, ExampleRectArea.rectangles.get("EDUCATION_Resume2"));
 
+	}
+
+	public static boolean testAllUpperCase(String str) {
+		for (int i = 0; i < str.length(); i++) {
+			char c = str.charAt(i);
+			if (c >= 97 && c <= 122) {
+				return false;
+			}
+		}
+		// str.charAt(index)
+		return true;
 	}
 
 	public void helloWorldExample() throws FileNotFoundException {
@@ -148,13 +257,13 @@ public class App {
 		pdfDoc.close();
 	}
 
-	public void drawRectangleOnPdf(PdfDocument pdfDoc, Rectangle rect) {
+	public static void drawRectangleOnPdf(PdfDocument pdfDoc, Rectangle rect, Color color) {
 		PdfCanvas canvas = new PdfCanvas(pdfDoc.getFirstPage().newContentStreamAfter(),
 				pdfDoc.getFirstPage().getResources(), pdfDoc);
 		canvas.saveState();
 
 		canvas.rectangle(new Rectangle(rect));
-		canvas.setStrokeColor(ColorConstants.RED);
+		canvas.setStrokeColor(color);
 		canvas.stroke();
 		canvas.restoreState();
 	}
@@ -199,7 +308,7 @@ public class App {
 
 		List<Rectangle> contentsRectangle = parseContentsRectangles(content);
 		for (Rectangle rect : contentsRectangle) {
-			drawRectangleOnPdf(pdfDoc, rect);
+			drawRectangleOnPdf(pdfDoc, rect, ColorConstants.RED);
 		}
 
 		pdfDoc.close();
@@ -422,6 +531,14 @@ public class App {
 		fontMap.put("Variant", fontVariant);
 
 		return fontMap;
+	}
+	
+	public static float calculateRealFontSize(TextRenderInfo renderInfo) {
+		CanvasGraphicsState canvasGs = renderInfo.getGraphicsState();
+		Matrix textToUserSpaceTransformMatrix = canvasGs.getCtm();
+		float transformedFontSize = new Vector(0, canvasGs.getFontSize(), 0).cross(textToUserSpaceTransformMatrix)
+				.length();
+		return (float) Math.ceil(transformedFontSize);
 	}
 
 	public static void downloadPdfFontsFromGoogleWebFontsApi() throws IOException {
