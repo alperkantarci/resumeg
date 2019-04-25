@@ -27,16 +27,18 @@ public class CustomITextExtractionStrategy implements ITextExtractionStrategy {
 
 //		System.out.println(" ".equals(" "));
 		if (words == null) {
-			words = new ArrayList<WordTextRenderInfo>();
+			words = new ArrayList<>();
 		}
 
 		if (text.length() == 1) {
 			if (chars == null) {
-				chars = new ArrayList<TextRenderInfo>();
+				chars = new ArrayList<>();
 			}
 			renderInfo.preserveGraphicsState();
-			System.out.println("actualText:" + text + "->" + text.equals(" "));
+			System.out.println("actualChar:" + text + "->" + text.equals(" "));
 			chars.add(renderInfo);
+		}else{
+			System.out.println("actualLine:" + text + "->" + text.equals(" "));
 		}
 
 		if (text.equals(" ")) {

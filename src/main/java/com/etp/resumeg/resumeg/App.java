@@ -58,21 +58,19 @@ public class App {
 	}
 
 	// Paths
-	public static final String SRC_HELLO = "pdf/input/hello.pdf";
-	public static final String SRC_TEST = "/home/alperk/Downloads/dddd.pdf";
-	public static final String SRC_RESUME = "pdf/input/Resume2.pdf";
-	public static final String DEST = "pdf/output/parsedStream";
-	public static final String OUT_PDF = "pdf/output/testOutput.pdf";
+	private static final String SRC_HELLO = "pdf/input/hello.pdf";
+//	public static final String SRC_TEST = "/home/alperk/Downloads/dddd.pdf";
+	private static final String SRC_RESUME = "pdf/input/Resume2.pdf";
+	private static final String DEST = "pdf/output/parsedStream";
+	private static final String OUT_PDF = "pdf/output/testOutput.pdf";
 	// Font resources
-	public static final String ROBOTO_REGULAR = "resources/fonts/RobotoCondensed-Regular.ttf";
+	private static final String ROBOTO_REGULAR = "resources/fonts/RobotoCondensed-Regular.ttf";
 	// New content for pdf
-	public static final HashMap<String, String> newContent = new HashMap<String, String>();
+	private static final HashMap<String, String> newContent = new HashMap<>();
 	// Font
-	public static List<TextRenderInfo> renderInfos = new ArrayList<TextRenderInfo>();
+	private static List<TextRenderInfo> renderInfos = new ArrayList<>();
 	// GoogleWebFonts
-	public static GoogleWebFontService webFontService = null;
-	// Downloaded fonts
-	public static List<PdfFont> downloadedFonts = null;
+	private static GoogleWebFontService webFontService = null;
 
 	public static void main(String[] args) throws Exception {
 		PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
@@ -84,8 +82,8 @@ public class App {
 		System.out.println();
 //		System.out.println(customStrategy.getWords().size());
 
-		List<WordTextRenderInfo> captionWords = new ArrayList<WordTextRenderInfo>();
-		List<String> googleCaptionWords = new ArrayList<String>();
+		List<WordTextRenderInfo> captionWords = new ArrayList<>();
+		List<String> googleCaptionWords = new ArrayList<>();
 		googleCaptionWords.add("SKILLS");
 		googleCaptionWords.add("EXPERIENCE");
 		googleCaptionWords.add("EDUCATION");
@@ -189,7 +187,7 @@ public class App {
 
 	}
 
-	public static boolean testAllUpperCase(String str) {
+	private static boolean testAllUpperCase(String str) {
 		for (int i = 0; i < str.length(); i++) {
 			char c = str.charAt(i);
 			if (c >= 97 && c <= 122) {
@@ -201,12 +199,12 @@ public class App {
 	}
 
 	public void helloWorldExample() throws FileNotFoundException {
-//		new App().createDirs();
-//		PdfDocument pdf = new PdfDocument(new PdfWriter(DEST));
-//		Document document = new Document(pdf);
-//		document.add(new Paragraph("Hello World!"));
-//		document.add(new Paragraph("Paragraph2"));
-//		document.close();
+		new App().createDirs();
+		PdfDocument pdf = new PdfDocument(new PdfWriter(DEST));
+		Document document = new Document(pdf);
+		document.add(new Paragraph("Hello World!"));
+		document.add(new Paragraph("Paragraph2"));
+		document.close();
 	}
 
 	public void parse(String src, String dest) throws IOException {
@@ -231,7 +229,7 @@ public class App {
 //        }
 	}
 
-	public static List<PdfObject> getFontsList(String src) throws IOException {
+	private static List<PdfObject> getFontsList(String src) throws IOException {
 		PdfDocument pdfDoc = new PdfDocument(new PdfReader(src));
 		PdfPage firstPage = pdfDoc.getFirstPage();
 		PdfResources pdfResources = firstPage.getResources();
@@ -257,7 +255,7 @@ public class App {
 		pdfDoc.close();
 	}
 
-	public static void drawRectangleOnPdf(PdfDocument pdfDoc, Rectangle rect, Color color) {
+	private static void drawRectangleOnPdf(PdfDocument pdfDoc, Rectangle rect, Color color) {
 		PdfCanvas canvas = new PdfCanvas(pdfDoc.getFirstPage().newContentStreamAfter(),
 				pdfDoc.getFirstPage().getResources(), pdfDoc);
 		canvas.saveState();
@@ -272,7 +270,7 @@ public class App {
 	 * @param reText contains "0 0 100 50 re" string from /Contents
 	 * @return
 	 */
-	public Rectangle convertReTagTextToRectangle(String reText) {
+	private Rectangle convertReTagTextToRectangle(String reText) {
 		String splittedReLine[] = reText.split(" ");
 		// reText example: "0 0 100 200"
 		float x1 = Float.valueOf(splittedReLine[0]);
@@ -282,7 +280,7 @@ public class App {
 		return new Rectangle(x1, y1, x2, y2);
 	}
 
-	public List<Rectangle> parseContentsRectangles(String content) {
+	private List<Rectangle> parseContentsRectangles(String content) {
 		List<Rectangle> contentsRectangle = new ArrayList<>();
 		/**
 		 * split content line by line and filter which contains "re" tag
@@ -504,7 +502,7 @@ public class App {
 //		file.getParentFile().mkdirs();
 	}
 
-	public static HashMap<String, String> splitFontName(String baseFont) {
+	private static HashMap<String, String> splitFontName(String baseFont) {
 		HashMap<String, String> fontMap = new HashMap<String, String>();
 
 		// Font splitting by 'camel case' and '-'
@@ -533,7 +531,7 @@ public class App {
 		return fontMap;
 	}
 	
-	public static float calculateRealFontSize(TextRenderInfo renderInfo) {
+	private static float calculateRealFontSize(TextRenderInfo renderInfo) {
 		CanvasGraphicsState canvasGs = renderInfo.getGraphicsState();
 		Matrix textToUserSpaceTransformMatrix = canvasGs.getCtm();
 		float transformedFontSize = new Vector(0, canvasGs.getFontSize(), 0).cross(textToUserSpaceTransformMatrix)
@@ -551,7 +549,8 @@ public class App {
 				// List of fontObjects that pdf contains
 				List<PdfObject> fontObjects = getFontsList(SRC_RESUME);
 
-				downloadedFonts = new ArrayList<>();
+				// Downloaded fonts
+				List<PdfFont> downloadedFonts = new ArrayList<>();
 //				int countDownloadedFonts = 0;
 				// Loop through fontObjects and download every font from google web font api
 				for (PdfObject fontObj : fontObjects) {

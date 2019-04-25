@@ -6,7 +6,7 @@ import java.util.Map;
 import com.itextpdf.kernel.geom.Rectangle;
 
 public class ExampleRectArea {
-	public static Map<String, Rectangle> rectangles = new HashMap<String, Rectangle>(); 
+	private static Map<String, Rectangle> rectangles = new HashMap<>();
 	
 	public ExampleRectArea() {
 		rectangles.put("EDUCATION_Resume2", new Rectangle(89.25f, 232.5f, 54f, 16f));
