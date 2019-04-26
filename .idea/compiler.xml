@@ -6,13 +6,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="resumeg (1)" />
         <module name="resumeg" />
-        <module name="resumeg (2)" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="resumeg (1)" target="1.8" />
-      <module name="resumeg (2)" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
