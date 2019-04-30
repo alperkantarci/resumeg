@@ -9,6 +9,9 @@ import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ *
+ */
 public class PdfDrawService {
 
     protected static void drawRectangles(String src, String dest) throws IOException {
@@ -29,6 +32,12 @@ public class PdfDrawService {
         pdfDoc.close();
     }
 
+
+    /**
+     * @param pdfDoc PdfDocument object that you are working on
+     * @param rect  Rectangle object that you want to draw
+     * @param color Color (com.itextpdf.kernel.colors) object, color of rectangle's border, ex: ColorConstants.RED
+     */
     protected static void drawRectangleOnPdf(PdfDocument pdfDoc, Rectangle rect, Color color) {
         PdfCanvas canvas = new PdfCanvas(pdfDoc.getFirstPage().newContentStreamAfter(),
                 pdfDoc.getFirstPage().getResources(), pdfDoc);

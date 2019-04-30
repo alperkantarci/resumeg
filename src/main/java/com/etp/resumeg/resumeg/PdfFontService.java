@@ -1,6 +1,10 @@
 package com.etp.resumeg.resumeg;
 
+import com.itextpdf.kernel.geom.Matrix;
+import com.itextpdf.kernel.geom.Vector;
 import com.itextpdf.kernel.pdf.*;
+import com.itextpdf.kernel.pdf.canvas.CanvasGraphicsState;
+import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,5 +37,14 @@ public class PdfFontService {
         }
         pdfDoc.close();
         return fontObjects;
+    }
+
+    protected static float calculateRealFontSize(CanvasGraphicsState canvasGraphicsState){
+        // real Font size calculation
+        Matrix textToUserSpaceTransformMatrix = canvasGraphicsState.getCtm();
+        float transformedFontSize = new Vector(0, canvasGraphicsState.getFontSize(), 0).cross(textToUserSpaceTransformMatrix)
+                .length();
+
+        return transformedFontSize;
     }
 }
