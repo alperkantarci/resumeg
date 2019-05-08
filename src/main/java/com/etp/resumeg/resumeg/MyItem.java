@@ -39,16 +39,8 @@ public class MyItem implements Comparable<MyItem>  {
         return fontSize;
     }
 
-    public void setRealRectangle(Rectangle realRectangle) {
-        this.realRectangle = realRectangle;
-    }
-
     public Rectangle getDrawableRectangle() {
         return drawableRectangle;
-    }
-
-    public void setDrawableRectangle(Rectangle drawableRectangle) {
-        this.drawableRectangle = drawableRectangle;
     }
 
     /**

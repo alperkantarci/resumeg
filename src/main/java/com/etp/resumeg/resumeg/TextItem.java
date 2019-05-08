@@ -8,7 +8,7 @@ public class TextItem extends MyItem {
     /**
      * Position of the baseline of the text.
      */
-    float baseline;
+    private float baseline;
 
     public TextItem(TextRenderInfo textRenderInfo, float pageHeight) {
         this.pageHeight = pageHeight;
@@ -32,6 +32,7 @@ public class TextItem extends MyItem {
     }
 
     static Rectangle getRectangle(TextRenderInfo textRenderInfo) {
+        System.out.println("textItemText:" + textRenderInfo.getText());
         LineSegment descentLine = textRenderInfo.getDescentLine();
         LineSegment ascentLine = textRenderInfo.getAscentLine();
         float x0 = descentLine.getStartPoint().get(0);

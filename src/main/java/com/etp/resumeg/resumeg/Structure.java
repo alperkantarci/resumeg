@@ -17,14 +17,15 @@ public class Structure extends Line {
 
     @Override
     public Rectangle getDrawableRectangle() {
+        float lineItemFontSize = getItems().get(0).getFontSize();
         Line firstLine = (Line) getItems().get(0);
         Line lastLine = (Line) getItems().get(getItems().size() - 1);
 
         float structureHeight;
         if (getItems().size() > 1) {
-            structureHeight = firstLine.getRealRectangle().getBottom() - lastLine.getRealRectangle().getBottom() + getItemFontSize();
+            structureHeight = firstLine.getRealRectangle().getBottom() - lastLine.getRealRectangle().getBottom() + lineItemFontSize;
         } else {
-            structureHeight = getItemFontSize();
+            structureHeight = lineItemFontSize;
         }
 
         float structureLeft = firstLine.getRealRectangle().getLeft();

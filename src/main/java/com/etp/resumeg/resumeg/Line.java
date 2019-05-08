@@ -8,7 +8,6 @@ public class Line extends MyItem {
 
     private List<MyItem> items;
     private String text;
-    private float itemFontSize;
 
     /**
      * Creates a Line object based on a list of items that have the same
@@ -24,15 +23,10 @@ public class Line extends MyItem {
         text = getItemsText(items);
         fontSize = getItemFontSize(items);
         pageHeight = items.get(0).getPageHeight();
-        itemFontSize = items.get(0).getFontSize();
     }
 
     public List<MyItem> getItems() {
         return items;
-    }
-
-    public float getItemFontSize() {
-        return itemFontSize;
     }
 
     public Rectangle getDrawableRectangle() {
@@ -88,10 +82,12 @@ public class Line extends MyItem {
      * @return a realRectangle that encompasses all items belonging to a line
      */
     private static String getItemsText(List<MyItem> items) {
+        System.out.println("line.getItems():" + items.size());
         StringBuilder lineText = new StringBuilder();
         for (MyItem item : items) {
             lineText.append(item.getText());
         }
+        System.out.println("lineText:" + lineText);
         return lineText.toString();
     }
 

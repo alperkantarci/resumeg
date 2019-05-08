@@ -27,7 +27,7 @@ public class App {
     // Paths
     private static final String SRC_HELLO = "pdf/input/hello.pdf";
     //	public static final String SRC_TEST = "/home/alperk/Downloads/dddd.pdf";
-    private static final String SRC_RESUME = "pdf/input/Resume4_1col.pdf";
+    private static final String SRC_RESUME = "pdf/input/Resume2_1col.pdf";
     private static final String DEST = "pdf/output/parsedStream";
     private static final String OUT_PDF = "pdf/output/testOutput.pdf";
     // Font resources
