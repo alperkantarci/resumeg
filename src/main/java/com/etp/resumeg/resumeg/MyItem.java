@@ -10,6 +10,8 @@ public class MyItem implements Comparable<MyItem>  {
      */
     public static final float itemPositionTolerance = 3f;
 
+    protected float pageHeight;
+
     /** Rectangle that defines the original coordinates of an item. */
     protected Rectangle realRectangle;
     /** Rectangle that defines the drawing coordinates of an item. */
@@ -19,6 +21,10 @@ public class MyItem implements Comparable<MyItem>  {
     protected float fontSize;
 
     public MyItem() {
+    }
+
+    public float getPageHeight() {
+        return pageHeight;
     }
 
     public String getText() {

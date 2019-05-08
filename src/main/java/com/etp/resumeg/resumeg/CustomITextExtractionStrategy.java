@@ -75,7 +75,7 @@ public class CustomITextExtractionStrategy implements ITextExtractionStrategy {
         TextRenderInfo textRenderInfo = (TextRenderInfo) data;
         textRenderInfo.preserveGraphicsState();
 
-        items.add(new TextItem(textRenderInfo));
+        items.add(new TextItem(textRenderInfo, pdfDoc.getFirstPage().getPageSize().getHeight()));
 
 //         CREATING templateKeywords by splitting new line
 //         add every line with unique uuid key to list

@@ -20,12 +20,13 @@ public class Line extends MyItem {
         drawableRectangle = getDrawableRectangle();
         text = getItemsText(items);
         fontSize = getItemFontSize(items);
+        pageHeight = items.get(0).getPageHeight();
     }
 
     public Rectangle getDrawableRectangle() {
         if (realRectangle != null) {
             float x0 = getRealRectangle().getLeft();
-            float y0 = 792 - getRealRectangle().getBottom() - getFontSize();
+            float y0 = pageHeight - getRealRectangle().getBottom() - getFontSize();
             float width = getRealRectangle().getRight() - getRealRectangle().getLeft();
 
             Rectangle drawableRect = new Rectangle(x0, y0, width, getFontSize());
@@ -63,7 +64,7 @@ public class Line extends MyItem {
             if (item.getRealRectangle().getBottom() < bottom)
                 bottom = item.getRealRectangle().getBottom();
         }
-        System.out.println();
+//        System.out.println();
         return new Rectangle(left, bottom, right - left, top);
     }
 
