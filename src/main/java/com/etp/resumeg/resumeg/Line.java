@@ -6,7 +6,9 @@ import java.util.List;
 
 public class Line extends MyItem {
 
+    private List<MyItem> items;
     private String text;
+    private float itemFontSize;
 
     /**
      * Creates a Line object based on a list of items that have the same
@@ -16,11 +18,21 @@ public class Line extends MyItem {
      */
     public Line(List<MyItem> items) {
         super();
+        this.items = items;
         realRectangle = getItemsRect(items);
         drawableRectangle = getDrawableRectangle();
         text = getItemsText(items);
         fontSize = getItemFontSize(items);
         pageHeight = items.get(0).getPageHeight();
+        itemFontSize = items.get(0).getFontSize();
+    }
+
+    public List<MyItem> getItems() {
+        return items;
+    }
+
+    public float getItemFontSize() {
+        return itemFontSize;
     }
 
     public Rectangle getDrawableRectangle() {
@@ -53,8 +65,8 @@ public class Line extends MyItem {
         float top = 0;
         float bottom = Float.MAX_VALUE;
         for (MyItem item : items) {
-//            System.out.println(item.getText() + "->" + item.getRealRectangle().getLeft() + ", " + item.getRealRectangle().getRight()
-//            + ", " + item.getRealRectangle().getHeight());
+//            System.out.println(item.getText() + "-> left:" + item.getRealRectangle().getLeft() + ", right:" + item.getRealRectangle().getRight()
+//            + ", top:" + item.getRealRectangle().getTop());
             if (item.getRealRectangle().getLeft() < left)
                 left = item.getRealRectangle().getLeft();
             if (item.getRealRectangle().getRight() > right)

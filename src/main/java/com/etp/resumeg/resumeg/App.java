@@ -1,22 +1,19 @@
 package com.etp.resumeg.resumeg;
 
-import java.io.IOException;
-import java.util.*;
-
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.geom.Matrix;
-import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.geom.Vector;
-import com.itextpdf.kernel.pdf.PdfDictionary;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfName;
-import com.itextpdf.kernel.pdf.PdfObject;
-import com.itextpdf.kernel.pdf.PdfReader;
-import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.*;
 import com.itextpdf.kernel.pdf.canvas.CanvasGraphicsState;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
 import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 public class App {
 
@@ -30,7 +27,7 @@ public class App {
     // Paths
     private static final String SRC_HELLO = "pdf/input/hello.pdf";
     //	public static final String SRC_TEST = "/home/alperk/Downloads/dddd.pdf";
-    private static final String SRC_RESUME = "pdf/input/Resume2_1col.pdf";
+    private static final String SRC_RESUME = "pdf/input/Resume4_1col.pdf";
     private static final String DEST = "pdf/output/parsedStream";
     private static final String OUT_PDF = "pdf/output/testOutput.pdf";
     // Font resources
@@ -55,39 +52,41 @@ public class App {
 //        CustomITextExtractionStrategy customStrategy = new CustomITextExtractionStrategy(pdfDoc);
 //        PdfTextExtractor.getTextFromPage(pdfDoc.getFirstPage(), customStrategy);
 
-        System.out.println("pdfDoc.getX():" + pdfDoc.getFirstPage().getPageSize().getX());
-        System.out.println("pdfDoc.getY():" + pdfDoc.getFirstPage().getPageSize().getY());
-        System.out.println("pdfDoc.getWidth():" + pdfDoc.getFirstPage().getPageSize().getWidth());
-        System.out.println("pdfDoc.getHeight():" + pdfDoc.getFirstPage().getPageSize().getHeight());
-        System.out.println("pdfDoc.getPageSize():" + pdfDoc.getFirstPage().getPageSize());
-        System.out.println();
-
         pdfDoc.getFirstPage().getPageSize().getX();
         App app = new App();
         List<MyItem> items = app.getContentItems(pdfDoc);
         Collections.sort(items);
         List<Line> lines = app.getLines(items);
+        List<Structure> structures = app.getStructures(lines);
+
 
         System.out.println("items.size():" + items.size());
         System.out.println("lines.size():" + lines.size());
+        System.out.println("structures.size():" + structures.size());
 
         System.out.println();
-        for (Line lineItem : lines) {
-            if (!lineItem.getText().equals(" ")) {
-                System.out.println();
-                System.out.println(lineItem.getRealRectangle());
-                System.out.println("lineItem.getText():" + lineItem.getText());
-                System.out.println("lineItem.getX():" + lineItem.getRealRectangle().getX());
-                System.out.println("lineItem.getLeft():" + lineItem.getRealRectangle().getLeft());
-                System.out.println("lineItem.getY():" + lineItem.getRealRectangle().getY());
-                System.out.println("lineItem.getBottom():" + lineItem.getRealRectangle().getBottom());
-                System.out.println("lineItem.getRight():" + lineItem.getRealRectangle().getRight());
-                System.out.println("lineItem.getTop():" + lineItem.getRealRectangle().getTop());
-                System.out.println("lineItem.getHeight():" + lineItem.getRealRectangle().getHeight());
-                System.out.println("lineItem.getWidth():" + lineItem.getRealRectangle().getWidth());
-                System.out.println("lineItem.fontSize():" + lineItem.getFontSize());
+//        for (Line lineItem : lines) {
+//            if (!lineItem.getText().equals(" ")) {
+//                System.out.println();
+//                System.out.println(lineItem.getRealRectangle());
+//                System.out.println("lineItem.getText():" + lineItem.getText());
+//                System.out.println("lineItem.getX():" + lineItem.getRealRectangle().getX());
+//                System.out.println("lineItem.getLeft():" + lineItem.getRealRectangle().getLeft());
+//                System.out.println("lineItem.getY():" + lineItem.getRealRectangle().getY());
+//                System.out.println("lineItem.getBottom():" + lineItem.getRealRectangle().getBottom());
+//                System.out.println("lineItem.getRight():" + lineItem.getRealRectangle().getRight());
+//                System.out.println("lineItem.getTop():" + lineItem.getRealRectangle().getTop());
+//                System.out.println("lineItem.getHeight():" + lineItem.getRealRectangle().getHeight());
+//                System.out.println("lineItem.getWidth():" + lineItem.getRealRectangle().getWidth());
+//                System.out.println("lineItem.fontSize():" + lineItem.getFontSize());
+//
+//                PdfDrawService.drawRectangleOnPdf(pdfDoc, lineItem.getDrawableRectangle(), ColorConstants.RED);
+//            }
+//        }
 
-                PdfDrawService.drawRectangleOnPdf(pdfDoc, lineItem.getDrawableRectangle(), ColorConstants.RED);
+        for (Structure structure : structures) {
+            if (!structure.getText().equals(" ")) {
+                PdfDrawService.drawRectangleOnPdf(pdfDoc, structure.getDrawableRectangle(), ColorConstants.RED);
             }
         }
         pdfDoc.close();
@@ -122,6 +121,33 @@ public class App {
     }
 
     /**
+     * Combines lines into structures
+     *
+     * @param lines a list of lines
+     * @return list of structures
+     */
+    public List<Structure> getStructures(List<Line> lines) {
+        List<Structure> structures = new ArrayList<>();
+        List<MyItem> structure = new ArrayList<>();
+        for (Line line : lines) {
+            if (structure.isEmpty()) {
+                structure.add(line);
+                continue;
+            }
+            if (areInSameStructure((Line) structure.get(structure.size() - 1), line)) {
+                structure.add(line);
+            } else {
+                structures.add(new Structure(structure));
+                structure = new ArrayList<>();
+                structure.add(line);
+            }
+        }
+        if (!structure.isEmpty())
+            structures.add(new Structure(structure));
+        return structures;
+    }
+
+    /**
      * Checks if 2 items are on the same line.
      *
      * @param i1 first item
@@ -132,46 +158,17 @@ public class App {
         return Math.abs(i1.getLL().getY() - i2.getLL().getY()) <= MyItem.itemPositionTolerance;
     }
 
-    static boolean areInSameStructure(TemplateKeyword i1, TemplateKeyword i2) {
-
-        System.out.println();
-        System.out.println("i1:" + i1.getText());
-        System.out.println("i2:" + i2.getText());
-        System.out.println("i1 color:" + i1.getGraphicsState().getStrokeColor().getColorValue()[0]);
-        System.out.println("i2 color:" + i2.getGraphicsState().getStrokeColor().getColorValue()[0]);
-        System.out.println("i1 bottom:" + (792 - i1.getBottom()));
-        System.out.println("i2 bottom:" + (792 - i2.getBottom()));
-        System.out.println("i1 realFontSize:" + i1.getRealFontSize());
-
-
-        float i2Bottom = 792 - i2.getBottom();
-        float i1Bottom = 792 - i1.getBottom();
-
-        System.out.println("i2Bottom - i1Bottom:" + (i2Bottom - i1Bottom));
+    static boolean areInSameStructure(Line i1, Line i2) {
+        float i2Bottom = i2.getRealRectangle().getBottom();
+        float i1Bottom = i1.getRealRectangle().getBottom();
 
         // sadece structure ozelligi bozan durumlarda false dondur
         // 14.0 degeri iki line arasindaki max vertical bosluk, o degeri gecince 2 line ayni structure'a ait olmuyor.
-        if (i2Bottom - i1Bottom > 18.75) {
+        if (i1Bottom - i2Bottom > 20.99) {
             return false;
         }
 
-//        if (i2Bottom - i1Bottom >= 13.0) {
-//            return false;
-//        }
-
-//        if(i1.getGraphicsState().getStrokeColor().getColorValue()[0] != i2.getGraphicsState().getStrokeColor().getColorValue()[0]){
-//            return false;
-//        }
-//        else if(i2.getLeft() - i1.getLeft() >= 3.0 && i2.getBottom() - i1.getBottom() >= 3.0){
-//            return false;
-//        }
         return true;
-
-//        if (!i1.getColor().equals(i2.getColor()))
-//            return false;
-//        else if (i2.getRealRectangle().getLeft() - i1.getRealRectangle().getLeft() >= MyItem.itemPositionTolerance)
-//            return false;
-//        return true;
     }
 
     private void createDirs() {
