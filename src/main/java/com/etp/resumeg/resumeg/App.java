@@ -1,11 +1,8 @@
 package com.etp.resumeg.resumeg;
 
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.*;
 
-import com.itextpdf.io.font.FontProgram;
-import com.itextpdf.kernel.colors.Color;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.geom.Matrix;
@@ -78,27 +75,19 @@ public class App {
         for (Line lineItem : lines) {
             if (!lineItem.getText().equals(" ")) {
                 System.out.println();
-                System.out.println(lineItem.getRectangle());
-                System.out.println("lineItem.getX():" + lineItem.getRectangle().getX());
-                System.out.println("lineItem.getLeft():" + lineItem.getRectangle().getLeft());
-                System.out.println("lineItem.getY():" + lineItem.getRectangle().getY());
-                System.out.println("lineItem.getBottom():" + lineItem.getRectangle().getBottom());
-                System.out.println("lineItem.getRight():" + lineItem.getRectangle().getRight());
-                System.out.println("lineItem.getTop():" + lineItem.getRectangle().getTop());
-                System.out.println("lineItem.getRectangle().getHeight():" + lineItem.getRectangle().getHeight());
-                System.out.println("lineItem.getRectangle().getWidth():" + lineItem.getRectangle().getWidth());
-
-
+                System.out.println(lineItem.getRealRectangle());
                 System.out.println("lineItem.getText():" + lineItem.getText());
+                System.out.println("lineItem.getX():" + lineItem.getRealRectangle().getX());
+                System.out.println("lineItem.getLeft():" + lineItem.getRealRectangle().getLeft());
+                System.out.println("lineItem.getY():" + lineItem.getRealRectangle().getY());
+                System.out.println("lineItem.getBottom():" + lineItem.getRealRectangle().getBottom());
+                System.out.println("lineItem.getRight():" + lineItem.getRealRectangle().getRight());
+                System.out.println("lineItem.getTop():" + lineItem.getRealRectangle().getTop());
+                System.out.println("lineItem.getHeight():" + lineItem.getRealRectangle().getHeight());
+                System.out.println("lineItem.getWidth():" + lineItem.getRealRectangle().getWidth());
                 System.out.println("lineItem.fontSize():" + lineItem.getFontSize());
 
-
-                float x0 = lineItem.getRectangle().getLeft();
-                float y0 = 792 - lineItem.getRectangle().getBottom() - lineItem.getFontSize();
-                float width = lineItem.getRectangle().getRight() - lineItem.getRectangle().getLeft();
-
-                Rectangle drawRect = new Rectangle(x0, y0, width, lineItem.getFontSize());
-                PdfDrawService.drawRectangleOnPdf(pdfDoc, drawRect, ColorConstants.RED);
+                PdfDrawService.drawRectangleOnPdf(pdfDoc, lineItem.getDrawableRectangle(), ColorConstants.RED);
             }
         }
 
@@ -161,8 +150,8 @@ public class App {
 //                templateKeywords) {
 //            System.out.println("templateKeyword.getText():" + templateKeyword.getText());
 //
-//            Rectangle rectangle = new Rectangle(templateKeyword.getLeft(), 792 - templateKeyword.getBottom() - templateKeyword.getRealFontSize(), templateKeyword.getWidth(), templateKeyword.getRealFontSize());
-//            PdfDrawService.drawRectangleOnPdf(pdfDoc, rectangle, ColorConstants.RED);
+//            Rectangle realRectangle = new Rectangle(templateKeyword.getLeft(), 792 - templateKeyword.getBottom() - templateKeyword.getRealFontSize(), templateKeyword.getWidth(), templateKeyword.getRealFontSize());
+//            PdfDrawService.drawRectangleOnPdf(pdfDoc, realRectangle, ColorConstants.RED);
 //        }
 //
 //        System.out.println("TEMPLATEKEYWORDS LIST:");
@@ -184,8 +173,8 @@ public class App {
 //                structure.add(templateKeyword);
 //            }
 //
-////            Rectangle rectangle = new Rectangle(templateKeyword.getLeft(), 792 - templateKeyword.getBottom() - templateKeyword.getRealFontSize(), templateKeyword.getWidth(), templateKeyword.getRealFontSize());
-////            PdfDrawService.drawRectangleOnPdf(pdfDoc, rectangle, ColorConstants.RED);
+////            Rectangle realRectangle = new Rectangle(templateKeyword.getLeft(), 792 - templateKeyword.getBottom() - templateKeyword.getRealFontSize(), templateKeyword.getWidth(), templateKeyword.getRealFontSize());
+////            PdfDrawService.drawRectangleOnPdf(pdfDoc, realRectangle, ColorConstants.RED);
 //        }
 //        if (!structure.isEmpty()) {
 //            structures.add(new ArrayList<>(structure));
@@ -214,7 +203,7 @@ public class App {
 //            float structureBottom = structureItem.get(structureItem.size() - 1).getBottom();
 //            float structureWidth = 0;
 //
-//            Rectangle rectangle = new Rectangle(structureLeft, 792 - structureBottom - structureHeight, 0, structureHeight);
+//            Rectangle realRectangle = new Rectangle(structureLeft, 792 - structureBottom - structureHeight, 0, structureHeight);
 //
 //            for (TemplateKeyword templateKeyword : structureItem) {
 //                System.out.println(templateKeyword.getText());
@@ -224,8 +213,8 @@ public class App {
 //                }
 //            }
 //
-//            rectangle.setWidth(structureWidth);
-//            PdfDrawService.drawRectangleOnPdf(pdfDoc, rectangle, ColorConstants.RED);
+//            realRectangle.setWidth(structureWidth);
+//            PdfDrawService.drawRectangleOnPdf(pdfDoc, realRectangle, ColorConstants.RED);
 //        }
 
         pdfDoc.close();
@@ -307,7 +296,7 @@ public class App {
 
 //        if (!i1.getColor().equals(i2.getColor()))
 //            return false;
-//        else if (i2.getRectangle().getLeft() - i1.getRectangle().getLeft() >= MyItem.itemPositionTolerance)
+//        else if (i2.getRealRectangle().getLeft() - i1.getRealRectangle().getLeft() >= MyItem.itemPositionTolerance)
 //            return false;
 //        return true;
     }

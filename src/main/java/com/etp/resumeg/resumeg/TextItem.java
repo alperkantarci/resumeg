@@ -2,7 +2,6 @@ package com.etp.resumeg.resumeg;
 
 import com.itextpdf.kernel.geom.*;
 import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
-import org.w3c.dom.css.Rect;
 
 public class TextItem extends MyItem {
 
@@ -13,14 +12,15 @@ public class TextItem extends MyItem {
 
     public TextItem(TextRenderInfo textRenderInfo) {
         baseline = textRenderInfo.getBaseline().getStartPoint().get(1);
-        rectangle = getRectangle(textRenderInfo);
+        realRectangle = getRectangle(textRenderInfo);
+        drawableRectangle = getDrawableRectangle();
         text = textRenderInfo.getText();
         fontSize = getFontSize(textRenderInfo);
     }
 
     @Override
     public Point getLL() {
-        return new Point(getRectangle().getLeft(), baseline);
+        return new Point(getRealRectangle().getLeft(), baseline);
     }
 
     static float getFontSize(TextRenderInfo textRenderInfo) {
@@ -39,6 +39,18 @@ public class TextItem extends MyItem {
         float y0 = textRenderInfo.getBaseline().getStartPoint().get(Vector.I2);
         float y1 = ascentLine.getEndPoint().get(1);
         return new Rectangle(x0, y0, x1 - x0, y1);
+    }
+
+    public Rectangle getDrawableRectangle() {
+        if (realRectangle != null) {
+            float x0 = getRealRectangle().getLeft();
+            float y0 = 792 - getRealRectangle().getBottom() - getFontSize();
+            float width = getRealRectangle().getRight() - getRealRectangle().getLeft();
+
+            Rectangle drawableRect = new Rectangle(x0, y0, width, getFontSize());
+            return drawableRect;
+        }
+        return null;
     }
 
 }

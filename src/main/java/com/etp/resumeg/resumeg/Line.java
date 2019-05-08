@@ -16,9 +16,22 @@ public class Line extends MyItem {
      */
     public Line(List<MyItem> items) {
         super();
-        rectangle = getItemsRect(items);
+        realRectangle = getItemsRect(items);
+        drawableRectangle = getDrawableRectangle();
         text = getItemsText(items);
         fontSize = getItemFontSize(items);
+    }
+
+    public Rectangle getDrawableRectangle() {
+        if (realRectangle != null) {
+            float x0 = getRealRectangle().getLeft();
+            float y0 = 792 - getRealRectangle().getBottom() - getFontSize();
+            float width = getRealRectangle().getRight() - getRealRectangle().getLeft();
+
+            Rectangle drawableRect = new Rectangle(x0, y0, width, getFontSize());
+            return drawableRect;
+        }
+        return null;
     }
 
     @Override
@@ -27,11 +40,11 @@ public class Line extends MyItem {
     }
 
     /**
-     * Creates a rectangle that encompasses all the coordinate rectangles
+     * Creates a realRectangle that encompasses all the coordinate rectangles
      * of the items that belong to this line.
      *
      * @param items the items that belong to a line
-     * @return a rectangle that encompasses all items belonging to a line
+     * @return a realRectangle that encompasses all items belonging to a line
      */
     private static Rectangle getItemsRect(List<MyItem> items) {
         float left = Float.MAX_VALUE;
@@ -39,27 +52,27 @@ public class Line extends MyItem {
         float top = 0;
         float bottom = Float.MAX_VALUE;
         for (MyItem item : items) {
-            System.out.println(item.getText() + "->" + item.getRectangle().getLeft() + ", " + item.getRectangle().getRight()
-            + ", " + item.getRectangle().getHeight());
-            if (item.getRectangle().getLeft() < left)
-                left = item.getRectangle().getLeft();
-            if (item.getRectangle().getRight() > right)
-                right = item.getRectangle().getRight();
-            if (item.getRectangle().getTop() > top)
-                top = item.getRectangle().getTop();
-            if (item.getRectangle().getBottom() < bottom)
-                bottom = item.getRectangle().getBottom();
+//            System.out.println(item.getText() + "->" + item.getRealRectangle().getLeft() + ", " + item.getRealRectangle().getRight()
+//            + ", " + item.getRealRectangle().getHeight());
+            if (item.getRealRectangle().getLeft() < left)
+                left = item.getRealRectangle().getLeft();
+            if (item.getRealRectangle().getRight() > right)
+                right = item.getRealRectangle().getRight();
+            if (item.getRealRectangle().getTop() > top)
+                top = item.getRealRectangle().getTop();
+            if (item.getRealRectangle().getBottom() < bottom)
+                bottom = item.getRealRectangle().getBottom();
         }
         System.out.println();
         return new Rectangle(left, bottom, right - left, top);
     }
 
     /**
-     * Creates a rectangle that encompasses all the coordinate rectangles
+     * Creates a realRectangle that encompasses all the coordinate rectangles
      * of the items that belong to this line.
      *
      * @param items the items that belong to a line
-     * @return a rectangle that encompasses all items belonging to a line
+     * @return a realRectangle that encompasses all items belonging to a line
      */
     private static String getItemsText(List<MyItem> items) {
         StringBuilder lineText = new StringBuilder();

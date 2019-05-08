@@ -15,7 +15,7 @@ public class CustomTextRegionEventFilter implements IEventFilter {
 	/**
 	 * Constructs a filter instance.
 	 * 
-	 * @param filterRect the rectangle to filter text against
+	 * @param filterRect the realRectangle to filter text against
 	 */
 	public CustomTextRegionEventFilter(Rectangle filterRect) {
 		this.filterRect = filterRect;

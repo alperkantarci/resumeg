@@ -10,8 +10,10 @@ public class MyItem implements Comparable<MyItem>  {
      */
     public static final float itemPositionTolerance = 3f;
 
-    /** Rectangle that defines the coordinates of an item. */
-    protected Rectangle rectangle;
+    /** Rectangle that defines the original coordinates of an item. */
+    protected Rectangle realRectangle;
+    /** Rectangle that defines the drawing coordinates of an item. */
+    protected Rectangle drawableRectangle;
 
     protected String text;
     protected float fontSize;
@@ -23,16 +25,24 @@ public class MyItem implements Comparable<MyItem>  {
         return text;
     }
 
-    public Rectangle getRectangle() {
-        return rectangle;
+    public Rectangle getRealRectangle() {
+        return realRectangle;
     }
 
     public float getFontSize(){
         return fontSize;
     }
 
-    public void setRectangle(Rectangle rectangle) {
-        this.rectangle = rectangle;
+    public void setRealRectangle(Rectangle realRectangle) {
+        this.realRectangle = realRectangle;
+    }
+
+    public Rectangle getDrawableRectangle() {
+        return drawableRectangle;
+    }
+
+    public void setDrawableRectangle(Rectangle drawableRectangle) {
+        this.drawableRectangle = drawableRectangle;
     }
 
     /**
@@ -42,7 +52,7 @@ public class MyItem implements Comparable<MyItem>  {
      * @return point of the lower left corner.
      */
     public Point getLL() {
-        return new Point(getRectangle().getLeft(), getRectangle().getBottom());
+        return new Point(getRealRectangle().getLeft(), getRealRectangle().getBottom());
     }
 
     @Override

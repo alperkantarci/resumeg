@@ -36,7 +36,7 @@ public class PdfDrawService {
     /**
      * @param pdfDoc PdfDocument object that you are working on
      * @param rect  Rectangle object that you want to draw
-     * @param color Color (com.itextpdf.kernel.colors) object, color of rectangle's border, ex: ColorConstants.RED
+     * @param color Color (com.itextpdf.kernel.colors) object, color of realRectangle's border, ex: ColorConstants.RED
      */
     protected static void drawRectangleOnPdf(PdfDocument pdfDoc, Rectangle rect, Color color) {
         PdfCanvas canvas = new PdfCanvas(pdfDoc.getFirstPage().newContentStreamAfter(),
