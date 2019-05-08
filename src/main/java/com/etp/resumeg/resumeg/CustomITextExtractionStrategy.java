@@ -22,6 +22,9 @@ import com.itextpdf.layout.element.Text;
 
 public class CustomITextExtractionStrategy implements ITextExtractionStrategy {
 
+    /** The resulting list of items after parsing. */
+    List<MyItem> items = new ArrayList<MyItem>();
+
     // Keywords
     private static final List<String> keywords = new ArrayList<>();
 
@@ -70,132 +73,25 @@ public class CustomITextExtractionStrategy implements ITextExtractionStrategy {
 
         // now it is safe to cast
         TextRenderInfo textRenderInfo = (TextRenderInfo) data;
-
-        String text = textRenderInfo.getText();
-        CanvasGraphicsState canvasGraphicsState = textRenderInfo.getGraphicsState();
-        FontProgram fontProgram = textRenderInfo.getFont().getFontProgram();
-        String fntName = fontProgram.getFontNames().getFontName();
-        Color fontColor = canvasGraphicsState.getStrokeColor();
-        float fntColor = fontColor.getColorValue()[0];
-
-        Matrix textToUserSpaceTransformMatrix = canvasGraphicsState.getCtm();
-        float fntSize = new Vector(0, canvasGraphicsState.getFontSize(), 0).cross(textToUserSpaceTransformMatrix)
-                .length();
-
-//        String templateKeywordKey = fntName + "_" + fntSize + "_" + fntColor;
-
-//        System.out.println("textRenderInfo font infos:");
-//        System.out.println();
-//        System.out.println("text:\"" + text + "\"" + (text.equals(" ") ? "-> new line" : ""));
-//        System.out.println(templateKeywordKey);
-        for (float clr :
-                fontColor.getColorValue()) {
-//            System.out.println(clr);
-        }
-////        System.out.println("fntName:" + fntName + ", fntSize:" + fntSize + ", fntColor:" + fntColor.getColorValue()[0]);
-//        System.out.println();
-
         textRenderInfo.preserveGraphicsState();
 
-//        float x1 = textRenderInfo.getBaseline().getStartPoint().get(Vector.I1);
-//        float x2 = textRenderInfo.getBaseline().getEndPoint().get(Vector.I1);
-//        float y1 = textRenderInfo.getBaseline().getStartPoint().get(Vector.I2);
-//        float y2 = textRenderInfo.getBaseline().getEndPoint().get(Vector.I2);
-//
-//        Rectangle rectangle = new Rectangle(x1, 792 - y1 - fntSize, x2 - x1, fntSize);
-//        PdfDrawService.drawRectangleOnPdf(pdfDoc, rectangle, ColorConstants.RED);
+        items.add(new TextItem(textRenderInfo));
 
-        // CREATING stringBuilder by splitting new line char
-//        if (!textRenderInfo.getText().equals(" ")) {
-//            stringBuilder.append(textRenderInfo.getText());
+//         CREATING templateKeywords by splitting new line
+//         add every line with unique uuid key to list
+//        if (textRenderInfo.getText().equals(" ")) {
+//            templateKeywordKey = UUID.randomUUID().toString();
 //        } else {
-//            stringList.add(stringBuilder.toString());
-//            stringBuilder = new StringBuilder();
-//        }
-
-        // CREATING templateKeywords by splitting new line
-        // add every line with unique uuid key to list
-        if (textRenderInfo.getText().equals(" ")) {
-            templateKeywordKey = UUID.randomUUID().toString();
-        } else {
-            if (templateKeywords.get(templateKeywordKey) == null) {
-                templateKeywords.put(templateKeywordKey, new ArrayList<>());
-            }
-            templateKeywords.get(templateKeywordKey).add(textRenderInfo);
-        }
-
-
-//        String text = textRenderInfo.getText();
-//
-////		System.out.println(" ".equals(" "));
-//        if (words == null) {
-//            words = new ArrayList<>();
-//        }
-//
-//        if (templateKeywords == null) {
-//            templateKeywords = new ArrayList<>();
-//        }
-//
-//        // if text is a string(means a word/words) and equals to any keywords
-//        // 1. create templateKeyword
-//        // 2. add that templateKeyword item to templateKeyWords list
-//        if (keywords.contains(text.toLowerCase())) {
-//            textRenderInfo.preserveGraphicsState();
-//
-//            TemplateKeyword templateKeyword = new TemplateKeyword();
-//            float left = textRenderInfo.getBaseline().getStartPoint().get(Vector.I1);
-//            float right = textRenderInfo.getBaseline().getEndPoint().get(Vector.I1);
-//            float bottom = textRenderInfo.getBaseline().getStartPoint().get(Vector.I2);
-//            float charWidth = (right - left) / textRenderInfo.getText().length();
-//            float width = right - left;
-//
-//            templateKeyword.setFont(textRenderInfo.getFont());
-//            templateKeyword.setText(textRenderInfo.getText());
-//            templateKeyword.setLeft(left);
-//            templateKeyword.setBottom(bottom);
-//            templateKeyword.setWidth(width);
-//            templateKeyword.setGraphicsState(textRenderInfo.getGraphicsState());
-//
-//            templateKeywords.add(templateKeyword);
-//        }
-//
-//        // if text is a char, keep adding characters to chars list
-////        if (text.length() == 1) {
-//        if (!keywords.contains(text)) {
-//            if (chars == null) {
-//                chars = new ArrayList<>();
+//            if (templateKeywords.get(templateKeywordKey) == null) {
+//                templateKeywords.put(templateKeywordKey, new ArrayList<>());
 //            }
-//
-//            textRenderInfo.preserveGraphicsState();
-//
-//            System.out.println("actualChar:" + text + "->" + text.equals(" "));
-//
-////            CharacterRenderInfo characterRenderInfo = new CharacterRenderInfo(textRenderInfo);
-//            chars.add(textRenderInfo);
-//        } else {
-//            System.out.println("actualLine:" + text + "->" + text.equals(" "));
-//        }
-//
-//        if (chars != null) {
-////            System.out.println(convertCharacterRenderInfoListToString(chars).toLowerCase());
-//            String actualString = convertCharacterRenderInfoListToString(chars).toLowerCase();
-//            System.out.println("actualString:" + actualString);
-//
-//
-//            // if chars list begin equal to any keywords,
-//            // 1. convert chars list to TextRenderInfo
-//            // 2. add that TextRenderInfo item to templateKeywords list
-//            // 3. clean chars list
-//            stringContainsItemFromList(actualString.replace(" ", " "), keywords);
+//            templateKeywords.get(templateKeywordKey).add(textRenderInfo);
 //        }
     }
 
-//    public static void stringContainsItemFromList(String inputStr, String[] items) {
-//        System.out.println(StringUtils.indexOfAny(inputStr, items));
-////        Arrays.stream(items).parallel().filter(inputStr::contains).findAny();
-////        Arrays.stream(items).parallel().anyMatch(inputStr::contains);
-//    }
-
+    public List<MyItem> getItems() {
+        return items;
+    }
 
     public HashMap<String, List<TextRenderInfo>> getTemplateKeywords() {
         return templateKeywords;

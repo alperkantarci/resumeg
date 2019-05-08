@@ -2,10 +2,7 @@ package com.etp.resumeg.resumeg;
 
 import java.io.IOException;
 import java.sql.SQLOutput;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.itextpdf.io.font.FontProgram;
 import com.itextpdf.kernel.colors.Color;
@@ -36,7 +33,7 @@ public class App {
     // Paths
     private static final String SRC_HELLO = "pdf/input/hello.pdf";
     //	public static final String SRC_TEST = "/home/alperk/Downloads/dddd.pdf";
-    private static final String SRC_RESUME = "pdf/input/Resume.pdf";
+    private static final String SRC_RESUME = "pdf/input/Resume2_1col.pdf";
     private static final String DEST = "pdf/output/parsedStream";
     private static final String OUT_PDF = "pdf/output/testOutput.pdf";
     // Font resources
@@ -58,68 +55,261 @@ public class App {
     public static void main(String[] args) throws Exception {
         PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
 
-        CustomITextExtractionStrategy customStrategy = new CustomITextExtractionStrategy(pdfDoc);
-        // Extract text content by CustomITextExtractionStrategy class
-        PdfTextExtractor.getTextFromPage(pdfDoc.getFirstPage(), customStrategy);
+//        CustomITextExtractionStrategy customStrategy = new CustomITextExtractionStrategy(pdfDoc);
+//        PdfTextExtractor.getTextFromPage(pdfDoc.getFirstPage(), customStrategy);
+
+        System.out.println("pdfDoc.getX():" + pdfDoc.getFirstPage().getPageSize().getX());
+        System.out.println("pdfDoc.getY():" + pdfDoc.getFirstPage().getPageSize().getY());
+        System.out.println("pdfDoc.getWidth():" + pdfDoc.getFirstPage().getPageSize().getWidth());
+        System.out.println("pdfDoc.getHeight():" + pdfDoc.getFirstPage().getPageSize().getHeight());
+        System.out.println("pdfDoc.getPageSize():" + pdfDoc.getFirstPage().getPageSize());
+        System.out.println();
+
+        pdfDoc.getFirstPage().getPageSize().getX();
+        App app = new App();
+        List<MyItem> items = app.getContentItems(pdfDoc);
+        Collections.sort(items);
+        List<Line> lines = app.getLines(items);
+
+        System.out.println("items.size():" + items.size());
+        System.out.println("lines.size():" + lines.size());
 
         System.out.println();
-        System.out.println("pdf contains " + customStrategy.getTemplateKeywords().size() + " different types");
-        System.out.println();
+        for (Line lineItem : lines) {
+            if (!lineItem.getText().equals(" ")) {
+                System.out.println();
+                System.out.println(lineItem.getRectangle());
+                System.out.println("lineItem.getX():" + lineItem.getRectangle().getX());
+                System.out.println("lineItem.getLeft():" + lineItem.getRectangle().getLeft());
+                System.out.println("lineItem.getY():" + lineItem.getRectangle().getY());
+                System.out.println("lineItem.getBottom():" + lineItem.getRectangle().getBottom());
+                System.out.println("lineItem.getRight():" + lineItem.getRectangle().getRight());
+                System.out.println("lineItem.getTop():" + lineItem.getRectangle().getTop());
+                System.out.println("lineItem.getRectangle().getHeight():" + lineItem.getRectangle().getHeight());
+                System.out.println("lineItem.getRectangle().getWidth():" + lineItem.getRectangle().getWidth());
 
-        // templateKeywords splitted by new line char and grouped by uuid keys
-        System.out.println("templateKeywords.size:" + customStrategy.getTemplateKeywords().size());
-        for (Map.Entry<String, List<TextRenderInfo>> templateWords :
-                customStrategy.getTemplateKeywords().entrySet()) {
-            System.out.println("key:" + templateWords.getKey() + ", value.size:" + templateWords.getValue().size());
 
-            int index = 0;
-            TemplateKeyword templateKeyword = new TemplateKeyword();
-            StringBuilder stringBuilder = new StringBuilder();
-            for (TextRenderInfo textRenderInfo :
-                    templateWords.getValue()) {
+                System.out.println("lineItem.getText():" + lineItem.getText());
+                System.out.println("lineItem.fontSize():" + lineItem.getFontSize());
 
-                stringBuilder.append(textRenderInfo.getText());
 
-                // firstChar of a word
-                if (index == 0) {
-                    float left = textRenderInfo.getBaseline().getStartPoint().get(Vector.I1);
-                    float bottom = textRenderInfo.getBaseline().getStartPoint().get(Vector.I2);
+                float x0 = lineItem.getRectangle().getLeft();
+                float y0 = 792 - lineItem.getRectangle().getBottom() - lineItem.getFontSize();
+                float width = lineItem.getRectangle().getRight() - lineItem.getRectangle().getLeft();
 
-                    templateKeyword.setLeft(left);
-                    templateKeyword.setBottom(bottom);
-
-                    templateKeyword.setGraphicsState(textRenderInfo.getGraphicsState());
-                }
-
-                // lastChar of a word
-                if (index == templateWords.getValue().size() - 1) {
-                    float right = textRenderInfo.getBaseline().getEndPoint().get(Vector.I1);
-                    float width = right - templateKeyword.getLeft();
-
-                    templateKeyword.setWidth(width);
-                    templateKeyword.setText(stringBuilder.toString());
-                    templateKeywords.add(templateKeyword);
-                }
-
-                System.out.print("\"" + textRenderInfo.getText() + "\"");
-
-                index++;
+                Rectangle drawRect = new Rectangle(x0, y0, width, lineItem.getFontSize());
+                PdfDrawService.drawRectangleOnPdf(pdfDoc, drawRect, ColorConstants.RED);
             }
-            System.out.println();
-            System.out.println("=======================");
         }
 
-        System.out.println("TEMPLATEKEYWORDS LIST:");
-        for (TemplateKeyword templateKeyword :
-                templateKeywords) {
-            System.out.println("templateKeyword.getText():" + templateKeyword.getText());
-
-            Rectangle rectangle = new Rectangle(templateKeyword.getLeft(), 792 - templateKeyword.getBottom() - templateKeyword.getRealFontSize(), templateKeyword.getWidth(), templateKeyword.getRealFontSize());
-            PdfDrawService.drawRectangleOnPdf(pdfDoc, rectangle, ColorConstants.RED);
-        }
-
+//        System.out.println();
+//        System.out.println("pdf contains " + customStrategy.getTemplateKeywords().size() + " different types");
+//        System.out.println();
+//
+//        // templateKeywords splitted by new line char and grouped by uuid keys
+//        System.out.println("templateKeywords.size:" + customStrategy.getTemplateKeywords().size());
+//        for (Map.Entry<String, List<TextRenderInfo>> templateWords :
+//                customStrategy.getTemplateKeywords().entrySet()) {
+//            System.out.println("key:" + templateWords.getKey() + ", value.size:" + templateWords.getValue().size());
+//
+//            int index = 0;
+//            TemplateKeyword templateKeyword = new TemplateKeyword();
+//            StringBuilder stringBuilder = new StringBuilder();
+//            for (TextRenderInfo textRenderInfo :
+//                    templateWords.getValue()) {
+//
+//                stringBuilder.append(textRenderInfo.getText());
+//
+//                // firstChar of a word
+//                if (index == 0) {
+//                    float left = textRenderInfo.getBaseline().getStartPoint().get(Vector.I1);
+//                    float bottom = textRenderInfo.getBaseline().getStartPoint().get(Vector.I2);
+//
+//                    templateKeyword.setLeft(left);
+//                    templateKeyword.setBottom(bottom);
+//
+//                    templateKeyword.setGraphicsState(textRenderInfo.getGraphicsState());
+//                }
+//
+//                // lastChar of a word
+//                if (index == templateWords.getValue().size() - 1) {
+//                    System.out.println("templateWords.getRight():" + textRenderInfo.getBaseline().getEndPoint().get(Vector.I1));
+//                    System.out.println("left:" + templateKeyword.getLeft());
+//
+//                    float right = textRenderInfo.getBaseline().getEndPoint().get(Vector.I1);
+//                    float width = right - templateKeyword.getLeft();
+//                    System.out.println("width:" + width);
+//
+//                    templateKeyword.setWidth(width);
+//                    templateKeyword.setText(stringBuilder.toString());
+//                    templateKeywords.add(templateKeyword);
+//                }
+//
+//                System.out.print("\"" + textRenderInfo.getText() + "\"");
+//
+//                index++;
+//            }
+//            System.out.println();
+//            System.out.println("=======================");
+//        }
+//
+//        // sort lines by top to bottom
+//        Collections.sort(templateKeywords);
+//
+//        System.out.println("TEMPLATEKEYWORDS LIST:");
+//        for (TemplateKeyword templateKeyword :
+//                templateKeywords) {
+//            System.out.println("templateKeyword.getText():" + templateKeyword.getText());
+//
+//            Rectangle rectangle = new Rectangle(templateKeyword.getLeft(), 792 - templateKeyword.getBottom() - templateKeyword.getRealFontSize(), templateKeyword.getWidth(), templateKeyword.getRealFontSize());
+//            PdfDrawService.drawRectangleOnPdf(pdfDoc, rectangle, ColorConstants.RED);
+//        }
+//
+//        System.out.println("TEMPLATEKEYWORDS LIST:");
+//        List<List<TemplateKeyword>> structures = new ArrayList<>();
+//        List<TemplateKeyword> structure = new ArrayList<>();
+//        for (TemplateKeyword templateKeyword :
+//                templateKeywords) {
+//            System.out.println("templateKeyword.getText():" + templateKeyword.getText());
+//
+//            if (structure.isEmpty()) {
+//                structure.add(templateKeyword);
+//                continue;
+//            }
+//            if (areInSameStructure(structure.get(structure.size() - 1), templateKeyword)) {
+//                structure.add(templateKeyword);
+//            } else {
+//                structures.add(new ArrayList<>(structure));
+//                structure = new ArrayList<>();
+//                structure.add(templateKeyword);
+//            }
+//
+////            Rectangle rectangle = new Rectangle(templateKeyword.getLeft(), 792 - templateKeyword.getBottom() - templateKeyword.getRealFontSize(), templateKeyword.getWidth(), templateKeyword.getRealFontSize());
+////            PdfDrawService.drawRectangleOnPdf(pdfDoc, rectangle, ColorConstants.RED);
+//        }
+//        if (!structure.isEmpty()) {
+//            structures.add(new ArrayList<>(structure));
+//        }
+//
+//
+//        System.out.println("Structures.size():" + structures.size());
+//
+//        for (List<TemplateKeyword> structureItem : structures) {
+//            System.out.println("structure item:");
+//            System.out.println("structureItem.size():" + structureItem.size());
+//
+//            float lineSpace = ((float)((structureItem.size()-1) * 13.25));
+//
+//
+////            float structureHeight = (structureItem.size() * structureItem.get(0).getRealFontSize());
+//
+//            float structureHeight;
+//            if(structureItem.size() > 1){
+//                structureHeight = structureItem.get(0).getBottom() - structureItem.get(structureItem.size() - 1).getBottom() + structureItem.get(0).getRealFontSize();
+//            }else{
+//                structureHeight = structureItem.get(0).getRealFontSize();
+//            }
+//
+//            float structureLeft = structureItem.get(0).getLeft();
+//            float structureBottom = structureItem.get(structureItem.size() - 1).getBottom();
+//            float structureWidth = 0;
+//
+//            Rectangle rectangle = new Rectangle(structureLeft, 792 - structureBottom - structureHeight, 0, structureHeight);
+//
+//            for (TemplateKeyword templateKeyword : structureItem) {
+//                System.out.println(templateKeyword.getText());
+//
+//                if (structureWidth <= templateKeyword.getWidth()) {
+//                    structureWidth = templateKeyword.getWidth();
+//                }
+//            }
+//
+//            rectangle.setWidth(structureWidth);
+//            PdfDrawService.drawRectangleOnPdf(pdfDoc, rectangle, ColorConstants.RED);
+//        }
 
         pdfDoc.close();
+    }
+
+    public List<MyItem> getContentItems(PdfDocument pdfDocument) throws IOException {
+        CustomITextExtractionStrategy customStrategy = new CustomITextExtractionStrategy(pdfDocument);
+        // Extract text content by CustomITextExtractionStrategy class
+        PdfTextExtractor.getTextFromPage(pdfDocument.getFirstPage(), customStrategy);
+        return customStrategy.getItems();
+    }
+
+    public List<Line> getLines(List<MyItem> items) {
+        List<Line> lines = new ArrayList<>();
+        List<MyItem> line = new ArrayList<>();
+        for (MyItem item : items) {
+            if (line.isEmpty()) {
+                line.add(item);
+                continue;
+            }
+            if (areOnSameLine(line.get(line.size() - 1), item)) {
+                line.add(item);
+            } else {
+                lines.add(new Line(line));
+                line = new ArrayList<>();
+                line.add(item);
+            }
+        }
+        if (!line.isEmpty())
+            lines.add(new Line(line));
+        return lines;
+    }
+
+    /**
+     * Checks if 2 items are on the same line.
+     *
+     * @param i1 first item
+     * @param i2 second item
+     * @return true if items are on the same line, otherwise false
+     */
+    static boolean areOnSameLine(MyItem i1, MyItem i2) {
+        return Math.abs(i1.getLL().getY() - i2.getLL().getY()) <= MyItem.itemPositionTolerance;
+    }
+
+    static boolean areInSameStructure(TemplateKeyword i1, TemplateKeyword i2) {
+
+        System.out.println();
+        System.out.println("i1:" + i1.getText());
+        System.out.println("i2:" + i2.getText());
+        System.out.println("i1 color:" + i1.getGraphicsState().getStrokeColor().getColorValue()[0]);
+        System.out.println("i2 color:" + i2.getGraphicsState().getStrokeColor().getColorValue()[0]);
+        System.out.println("i1 bottom:" + (792 - i1.getBottom()));
+        System.out.println("i2 bottom:" + (792 - i2.getBottom()));
+        System.out.println("i1 realFontSize:" + i1.getRealFontSize());
+
+
+        float i2Bottom = 792 - i2.getBottom();
+        float i1Bottom = 792 - i1.getBottom();
+
+        System.out.println("i2Bottom - i1Bottom:" + (i2Bottom - i1Bottom));
+
+        // sadece structure ozelligi bozan durumlarda false dondur
+        // 14.0 degeri iki line arasindaki max vertical bosluk, o degeri gecince 2 line ayni structure'a ait olmuyor.
+        if (i2Bottom - i1Bottom > 18.75) {
+            return false;
+        }
+
+//        if (i2Bottom - i1Bottom >= 13.0) {
+//            return false;
+//        }
+
+//        if(i1.getGraphicsState().getStrokeColor().getColorValue()[0] != i2.getGraphicsState().getStrokeColor().getColorValue()[0]){
+//            return false;
+//        }
+//        else if(i2.getLeft() - i1.getLeft() >= 3.0 && i2.getBottom() - i1.getBottom() >= 3.0){
+//            return false;
+//        }
+        return true;
+
+//        if (!i1.getColor().equals(i2.getColor()))
+//            return false;
+//        else if (i2.getRectangle().getLeft() - i1.getRectangle().getLeft() >= MyItem.itemPositionTolerance)
+//            return false;
+//        return true;
     }
 
     private void createDirs() {

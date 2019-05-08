@@ -5,7 +5,7 @@ import com.itextpdf.kernel.geom.Matrix;
 import com.itextpdf.kernel.geom.Vector;
 import com.itextpdf.kernel.pdf.canvas.CanvasGraphicsState;
 
-public class TemplateKeyword {
+public class TemplateKeyword implements Comparable<TemplateKeyword> {
 
     private CanvasGraphicsState graphicsState;
     private PdfFont font;
@@ -83,5 +83,23 @@ public class TemplateKeyword {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    // sort lines by lines.bottom() value,  from top to bottom
+    @Override
+    public int compareTo(TemplateKeyword templateKeyword) {
+
+//        System.out.println(getText() + ".compareTo(" + templateKeyword.getText() + ")");
+
+        double left = getLeft();
+        double bottom = getBottom();
+        double oLeft = templateKeyword.getLeft();
+        double oBottom = templateKeyword.getBottom();
+        if (bottom - oBottom > 3)
+            return -1;
+        else if (oBottom - bottom > 3)
+            return 1;
+        else
+            return Double.compare(left, oLeft);
     }
 }

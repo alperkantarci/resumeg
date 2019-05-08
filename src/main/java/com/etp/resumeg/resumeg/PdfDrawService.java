@@ -42,8 +42,7 @@ public class PdfDrawService {
         PdfCanvas canvas = new PdfCanvas(pdfDoc.getFirstPage().newContentStreamAfter(),
                 pdfDoc.getFirstPage().getResources(), pdfDoc);
         canvas.saveState();
-
-        canvas.rectangle(new Rectangle(rect));
+        canvas.rectangle(rect);
         canvas.setStrokeColor(color);
         canvas.stroke();
         canvas.restoreState();
