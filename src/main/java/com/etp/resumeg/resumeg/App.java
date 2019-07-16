@@ -24,67 +24,29 @@ public class App {
         newContent.put("no_reply@example.com", "TEST@TEST.COM");
     }
 
-    // Paths
-//    private static final String SRC_HELLO = "pdf/input/hello.pdf";
-    //	public static final String SRC_TEST = "/home/alperk/Downloads/dddd.pdf";
-//    private static final String SRC_RESUME = "pdf/input/Resume4_1col.pdf";
-//    private static final String DEST = "pdf/output/parsedStream";
-//    private static final String OUT_PDF = "pdf/output/testOutput.pdf";
-
-//    // Font resources
-//    private static final String ROBOTO_REGULAR = "resources/fonts/RobotoCondensed-Regular.ttf";
-
     // New content for pdf
     private static final HashMap<String, String> newContent = new HashMap<>();
-//    // Font
-//    private static List<TextRenderInfo> renderInfos = new ArrayList<>();
+
     // GoogleWebFonts
     private static GoogleWebFontService webFontService = null;
 
-//    private static final List<TemplateKeyword> templateKeywordList = new ArrayList<>();
-//    private static List<TemplateKeyword> templateKeywords = new ArrayList<>();
-
-//    private static HashMap<String, List<TextRenderInfo>> templateKeywords = new HashMap<>();
-//        private static HashMap<String, HashMap<String, List<TextRenderInfo>>> templateKeywords = new HashMap<>();
-
-
     public static void main(String[] args) throws Exception {
         PdfDocument pdfDoc = new PdfDocument(new PdfReader(EnvVariable.SRC_RESUME), new PdfWriter(EnvVariable.OUT_PDF));
-
-//        CustomITextExtractionStrategy customStrategy = new CustomITextExtractionStrategy(pdfDoc);
-//        PdfTextExtractor.getTextFromPage(pdfDoc.getFirstPage(), customStrategy);
-
         pdfDoc.getFirstPage().getPageSize().getX();
+
         App app = new App();
+
         List<MyItem> items = app.getContentItems(pdfDoc);
         Collections.sort(items);
+
         List<Line> lines = app.getLines(items);
         List<Structure> structures = app.getStructures(lines);
-
 
         System.out.println("items.size():" + items.size());
         System.out.println("lines.size():" + lines.size());
         System.out.println("structures.size():" + structures.size());
 
         System.out.println();
-//        for (Line lineItem : lines) {
-//            if (!lineItem.getText().equals(" ")) {
-//                System.out.println();
-//                System.out.println(lineItem.getRealRectangle());
-//                System.out.println("lineItem.getText():" + lineItem.getText());
-//                System.out.println("lineItem.getX():" + lineItem.getRealRectangle().getX());
-//                System.out.println("lineItem.getLeft():" + lineItem.getRealRectangle().getLeft());
-//                System.out.println("lineItem.getY():" + lineItem.getRealRectangle().getY());
-//                System.out.println("lineItem.getBottom():" + lineItem.getRealRectangle().getBottom());
-//                System.out.println("lineItem.getRight():" + lineItem.getRealRectangle().getRight());
-//                System.out.println("lineItem.getTop():" + lineItem.getRealRectangle().getTop());
-//                System.out.println("lineItem.getHeight():" + lineItem.getRealRectangle().getHeight());
-//                System.out.println("lineItem.getWidth():" + lineItem.getRealRectangle().getWidth());
-//                System.out.println("lineItem.fontSize():" + lineItem.getFontSize());
-//
-//                PdfDrawService.drawRectangleOnPdf(pdfDoc, lineItem.getDrawableRectangle(), ColorConstants.RED);
-//            }
-//        }
 
         System.out.println("STRUCTURES:");
         for (Structure structure : structures) {
@@ -125,12 +87,6 @@ public class App {
         return lines;
     }
 
-    /**
-     * Combines lines into structures
-     *
-     * @param lines a list of lines
-     * @return list of structures
-     */
     public List<Structure> getStructures(List<Line> lines) {
         List<Structure> structures = new ArrayList<>();
         List<MyItem> structure = new ArrayList<>();
@@ -152,13 +108,6 @@ public class App {
         return structures;
     }
 
-    /**
-     * Checks if 2 items are on the same line.
-     *
-     * @param i1 first item
-     * @param i2 second item
-     * @return true if items are on the same line, otherwise false
-     */
     static boolean areOnSameLine(MyItem i1, MyItem i2) {
         return Math.abs(i1.getLL().getY() - i2.getLL().getY()) <= MyItem.itemPositionTolerance;
     }
@@ -174,19 +123,6 @@ public class App {
         }
 
         return true;
-    }
-
-    private void createDirs() {
-//		File file = new File(DEST);
-//		file.getParentFile().mkdirs();
-    }
-
-    private static float calculateRealFontSize(TextRenderInfo renderInfo) {
-        CanvasGraphicsState canvasGs = renderInfo.getGraphicsState();
-        Matrix textToUserSpaceTransformMatrix = canvasGs.getCtm();
-        float transformedFontSize = new Vector(0, canvasGs.getFontSize(), 0).cross(textToUserSpaceTransformMatrix)
-                .length();
-        return (float) Math.ceil(transformedFontSize);
     }
 
     public static void downloadPdfFontsFromGoogleWebFontsApi() throws IOException {
