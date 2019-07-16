@@ -25,29 +25,31 @@ public class App {
     }
 
     // Paths
-    private static final String SRC_HELLO = "pdf/input/hello.pdf";
+//    private static final String SRC_HELLO = "pdf/input/hello.pdf";
     //	public static final String SRC_TEST = "/home/alperk/Downloads/dddd.pdf";
-    private static final String SRC_RESUME = "pdf/input/Resume2_1col.pdf";
-    private static final String DEST = "pdf/output/parsedStream";
-    private static final String OUT_PDF = "pdf/output/testOutput.pdf";
-    // Font resources
-    private static final String ROBOTO_REGULAR = "resources/fonts/RobotoCondensed-Regular.ttf";
+//    private static final String SRC_RESUME = "pdf/input/Resume4_1col.pdf";
+//    private static final String DEST = "pdf/output/parsedStream";
+//    private static final String OUT_PDF = "pdf/output/testOutput.pdf";
+
+//    // Font resources
+//    private static final String ROBOTO_REGULAR = "resources/fonts/RobotoCondensed-Regular.ttf";
+
     // New content for pdf
     private static final HashMap<String, String> newContent = new HashMap<>();
-    // Font
-    private static List<TextRenderInfo> renderInfos = new ArrayList<>();
+//    // Font
+//    private static List<TextRenderInfo> renderInfos = new ArrayList<>();
     // GoogleWebFonts
     private static GoogleWebFontService webFontService = null;
 
-    private static final List<TemplateKeyword> templateKeywordList = new ArrayList<>();
-    private static List<TemplateKeyword> templateKeywords = new ArrayList<>();
+//    private static final List<TemplateKeyword> templateKeywordList = new ArrayList<>();
+//    private static List<TemplateKeyword> templateKeywords = new ArrayList<>();
 
 //    private static HashMap<String, List<TextRenderInfo>> templateKeywords = new HashMap<>();
 //        private static HashMap<String, HashMap<String, List<TextRenderInfo>>> templateKeywords = new HashMap<>();
 
 
     public static void main(String[] args) throws Exception {
-        PdfDocument pdfDoc = new PdfDocument(new PdfReader(SRC_RESUME), new PdfWriter(OUT_PDF));
+        PdfDocument pdfDoc = new PdfDocument(new PdfReader(EnvVariable.SRC_RESUME), new PdfWriter(EnvVariable.OUT_PDF));
 
 //        CustomITextExtractionStrategy customStrategy = new CustomITextExtractionStrategy(pdfDoc);
 //        PdfTextExtractor.getTextFromPage(pdfDoc.getFirstPage(), customStrategy);
@@ -84,9 +86,12 @@ public class App {
 //            }
 //        }
 
+        System.out.println("STRUCTURES:");
         for (Structure structure : structures) {
             if (!structure.getText().equals(" ")) {
                 PdfDrawService.drawRectangleOnPdf(pdfDoc, structure.getDrawableRectangle(), ColorConstants.RED);
+                System.out.println("struct:" + structure.getText());
+                System.out.println("struct.lines.size: " + structure.getItems().size());
             }
         }
         pdfDoc.close();
@@ -192,7 +197,7 @@ public class App {
                 webFontService = new GoogleWebFontService();
 
                 // List of fontObjects that pdf contains
-                List<PdfObject> fontObjects = PdfFontService.getFontsList(SRC_RESUME);
+                List<PdfObject> fontObjects = PdfFontService.getFontsList(EnvVariable.SRC_RESUME);
 
                 // Downloaded fonts
                 List<PdfFont> downloadedFonts = new ArrayList<>();

@@ -1,5 +1,6 @@
 package com.etp.resumeg.resumeg;
 
+import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.canvas.parser.EventType;
 import com.itextpdf.kernel.pdf.canvas.parser.data.IEventData;
@@ -47,6 +48,7 @@ public class CustomITextExtractionStrategy implements ITextExtractionStrategy {
 
         // now it is safe to cast
         TextRenderInfo textRenderInfo = (TextRenderInfo) data;
+        
         textRenderInfo.preserveGraphicsState();
         items.add(new TextItem(textRenderInfo, pdfDoc.getFirstPage().getPageSize().getHeight()));
     }
