@@ -53,51 +53,84 @@ public class App {
 
         System.out.println("twoColumnLines.size(): " + multipleColumnLines.size());
 
-//        for (Map.Entry<Double, List<Line>> entry : multipleColumnLines.entrySet()
-//        ) {
-//            System.out.println("key: " + entry.getKey() + " -> " + entry.getValue().size());
-//            for (Line line :
-//                    entry.getValue()) {
-////                System.out.println("line: " + line.getText());
-//            }
-//        }
+        for (Map.Entry<Double, List<Line>> entry : multipleColumnLines.entrySet()
+        ) {
+            System.out.println("key: " + entry.getKey() + " -> " + entry.getValue().size());
+            for (Line line :
+                    entry.getValue()) {
+//                System.out.println("line: " + line.getText());
+            }
+        }
 
-        HashMap<Double, List<Structure>> multipleColumnStructures = new HashMap<>();
+        double maxYTolerance = Math.abs(multipleColumnLines.get(50.7).get(0).getLL().getY() - multipleColumnLines.get(50.7).get(1).getLL().getY());
+        System.out.println("firstMaxYtolerance: " + maxYTolerance);
+        for(int i = 1; i <= multipleColumnLines.get(50.7).size() - 1; i++){
+            Line linePrev = multipleColumnLines.get(50.7).get(i-1);
+            Line lineNext = multipleColumnLines.get(50.7).get(i);
+
+            System.out.println("line.y: " + multipleColumnLines.get(50.7).get(i).getLL().getY());
+            System.out.println("maxYTolerance: " + maxYTolerance);
+
+            maxYTolerance = Math.min(Math.abs(lineNext.getLL().getY() - linePrev.getLL().getY()), maxYTolerance);
+        }
+
+        System.out.println("maxYTolerance: " + maxYTolerance);
+
+        HashMap<String, Structure> multipleColumnStructures = new HashMap<>();
 
         for (Map.Entry<Double, List<Line>> entry : multipleColumnLines.entrySet()
         ) {
-            List<Structure> structures = app.getStructures(entry.getValue());
-
-            System.out.println("structures.size(): " + structures.size());
+            List<Structure> structures = app.getStructures(entry.getValue(), maxYTolerance);
 
             for (Structure structure :
                     structures) {
-                System.out.println("structure.text: " + structure.getText());
+                UUID uuid = UUID.randomUUID();
+                String randomUUIDString = uuid.toString();
+
+                if (!multipleColumnStructures.containsKey(randomUUIDString)) {
+                    multipleColumnStructures.put(randomUUIDString, structure);
+                }
+//                multipleColumnStructures.put(randomUUIDString, structure);
+//                System.out.println("structure.text: " + structure.getText());
             }
-//            if (!multipleColumnStructures.containsKey(entry.getKey())) {
-//                multipleColumnStructures.put(entry.getKey(), app.getStructures(entry.getValue()));
-//            }
         }
+
+
+        System.out.println();
+        for (Map.Entry<String, Structure> entry :
+                multipleColumnStructures.entrySet()) {
+
+            System.out.println("structureKey: " + entry.getKey());
+            System.out.println("structureTxt: " + entry.getValue().getText());
+            System.out.println();
+        }
+
 
         System.out.println("multipleColumnStructures.size(): " + multipleColumnStructures.size());
 
-        for (Map.Entry<Double, List<Structure>> entry : multipleColumnStructures.entrySet()
-        ) {
-            System.out.println("key: " + entry.getKey());
-            for (Structure structure: entry.getValue()
-                 ) {
-                System.out.println("structure.text: " + structure.getText());
-            }
-        }
+//        for (Map.Entry<Double, List<Structure>> entry : multipleColumnStructures.entrySet()
+//        ) {
+//            System.out.println("key: " + entry.getKey());
+//            for (Structure structure: entry.getValue()
+//                 ) {
+//                System.out.println("structure.text: " + structure.getText());
+//            }
+//        }
 
 
         System.out.println();
 
         showPdfStructure(pdfDoc, items);
         showPdfStructure(pdfDoc, lines);
-//        showPdfStructure(pdfDoc, structures);
+        showPdfStructure(pdfDoc, multipleColumnStructures);
 
         pdfDoc.close();
+    }
+
+    public static void showPdfStructure(PdfDocument pdfDoc, HashMap<String, Structure> items) {
+        for (Map.Entry<String, Structure> item : items.entrySet()) {
+            PdfDrawService.drawRectangleOnPdf(pdfDoc, item.getValue().getDrawableRectangle(), ColorConstants.BLACK);
+        }
     }
 
     public static HashMap<Double, List<Line>> splitColumnLinesByX(List<Line> lines) {
@@ -109,38 +142,10 @@ public class App {
 //            System.out.println("line: " + line.getText());
 
             if (!multipleColumnLines.containsKey(lineX)) {
-
-//                // berkayCv bug fix
-//                double maxDistance = 0.0;
-//                double globalXTolerance = 10.0;
-//
-//
-//                for (Map.Entry<Double, List<Line>> entry : multipleColumnLines.entrySet()
-//                ) {
-//                    maxDistance = Math.max(Math.abs(entry.getKey() - globalXTolerance), maxDistance);
-//                }
-//
-//                System.out.println("maxDistance: " + maxDistance);
-//
-//                if(maxDistance >= globalXTolerance){
-//                    List<Line> oneColumnLines = new ArrayList<>();
-//                    multipleColumnLines.put(lineX, oneColumnLines);
-//                    multipleColumnLines.get(lineX).add(line);
-//                }
-
                 List<Line> oneColumnLines = new ArrayList<>();
                 multipleColumnLines.put(lineX, oneColumnLines);
             }
             multipleColumnLines.get(lineX).add(line);
-
-
-//            if (lineX == 50.7) {
-//                System.out.println("txt: " + line.getText());
-//            }
-
-//            if(lineX == 409.2){
-//                System.out.println("txt: " + line.getText());
-//            }
         }
 
         return multipleColumnLines;
@@ -210,7 +215,7 @@ public class App {
         return lines;
     }
 
-    public List<Structure> getStructures(List<Line> lines) {
+    public List<Structure> getStructures(List<Line> lines, Double maxYTolerance) {
         List<Structure> structures = new ArrayList<>();
         List<MyItem> structure = new ArrayList<>();
         for (Line line : lines) {
@@ -218,7 +223,7 @@ public class App {
                 structure.add(line);
                 continue;
             }
-            if (areInSameStructure((Line) structure.get(structure.size() - 1), line)) {
+            if (areInSameStructure((Line) structure.get(structure.size() - 1), line, maxYTolerance)) {
                 structure.add(line);
             } else {
                 structures.add(new Structure(structure));
@@ -245,7 +250,7 @@ public class App {
 //        return (Math.abs(i1.getLL().getY() - i2.getLL().getY()) <= MyItem.itemPositionTolerance);
     }
 
-    static boolean areInSameStructure(Line i1, Line i2) {
+    static boolean areInSameStructure(Line i1, Line i2, Double maxYTolerance) {
         float i2Bottom = i2.getRealRectangle().getBottom();
         float i1Bottom = i1.getRealRectangle().getBottom();
 
@@ -254,7 +259,7 @@ public class App {
 //
 //        System.out.println("i1Bottom:" + i1Bottom + ", i2Bottom:" + i2Bottom);
 
-        if ((i1Bottom - i2Bottom > 30)) {
+        if ((i1Bottom - i2Bottom >= maxYTolerance)) {
             return false;
         }
 
