@@ -32,7 +32,7 @@ public class TextItem extends MyItem {
     }
 
     static Rectangle getRectangle(TextRenderInfo textRenderInfo) {
-        System.out.println("textItemText:" + textRenderInfo.getText());
+//        System.out.println("textItemText:" + textRenderInfo.getText());
         LineSegment descentLine = textRenderInfo.getDescentLine();
         LineSegment ascentLine = textRenderInfo.getAscentLine();
         float x0 = descentLine.getStartPoint().get(0);

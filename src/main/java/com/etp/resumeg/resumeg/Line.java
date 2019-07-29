@@ -82,12 +82,12 @@ public class Line extends MyItem {
      * @return a realRectangle that encompasses all items belonging to a line
      */
     private static String getItemsText(List<MyItem> items) {
-        System.out.println("line.getItems():" + items.size());
+//        System.out.println("line.getItems():" + items.size());
         StringBuilder lineText = new StringBuilder();
         for (MyItem item : items) {
             lineText.append(item.getText());
         }
-        System.out.println("lineText:" + lineText);
+//        System.out.println("lineText:" + lineText);
         return lineText.toString();
     }
 

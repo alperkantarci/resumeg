@@ -9,6 +9,7 @@ public class MyItem implements Comparable<MyItem>  {
      * If we want to compare item positions we should add some tolerance.
      */
     public static final float itemPositionTolerance = 3f;
+//    public static final float itemPositionTolerance = 70f;
 
     protected float pageHeight;
 
