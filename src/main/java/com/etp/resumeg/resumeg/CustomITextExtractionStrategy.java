@@ -7,7 +7,9 @@ import com.itextpdf.kernel.pdf.canvas.parser.data.IEventData;
 import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
 import com.itextpdf.kernel.pdf.canvas.parser.listener.ITextExtractionStrategy;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -48,7 +50,20 @@ public class CustomITextExtractionStrategy implements ITextExtractionStrategy {
 
         // now it is safe to cast
         TextRenderInfo textRenderInfo = (TextRenderInfo) data;
-        
+
+        System.out.println();
+        System.out.println("eventOcurred");
+        System.out.println("textRenderInfo.getText(): " + textRenderInfo.getText());
+        try {
+            byte[] bytes = textRenderInfo.getText().getBytes("US-ASCII");
+            System.out.println("textRenderInfoASCII: " + Arrays.toString(bytes));
+            if(Arrays.toString(bytes).contains("63")){
+                return;
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
         textRenderInfo.preserveGraphicsState();
         items.add(new TextItem(textRenderInfo, pdfDoc.getFirstPage().getPageSize().getHeight()));
     }

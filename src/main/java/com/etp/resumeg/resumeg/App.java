@@ -62,19 +62,23 @@ public class App {
             }
         }
 
-        double maxYTolerance = Math.abs(multipleColumnLines.get(50.7).get(0).getLL().getY() - multipleColumnLines.get(50.7).get(1).getLL().getY());
-        System.out.println("firstMaxYtolerance: " + maxYTolerance);
-        for(int i = 1; i <= multipleColumnLines.get(50.7).size() - 1; i++){
-            Line linePrev = multipleColumnLines.get(50.7).get(i-1);
-            Line lineNext = multipleColumnLines.get(50.7).get(i);
+        double firstItemKey = (Double) multipleColumnLines.keySet().toArray()[0];
+        System.out.println("firstKey: " + firstItemKey);
 
-            System.out.println("line.y: " + multipleColumnLines.get(50.7).get(i).getLL().getY());
+        double maxYTolerance = Math.abs(multipleColumnLines.get(firstItemKey).get(0).getLL().getY() - multipleColumnLines.get(firstItemKey).get(1).getLL().getY());
+        System.out.println("firstMaxYtolerance: " + maxYTolerance);
+        for(int i = 1; i <= multipleColumnLines.get(firstItemKey).size() - 1; i++){
+            Line linePrev = multipleColumnLines.get(firstItemKey).get(i-1);
+            Line lineNext = multipleColumnLines.get(firstItemKey).get(i);
+
+            System.out.println("line.y: " + multipleColumnLines.get(firstItemKey).get(i).getLL().getY());
             System.out.println("maxYTolerance: " + maxYTolerance);
 
             maxYTolerance = Math.min(Math.abs(lineNext.getLL().getY() - linePrev.getLL().getY()), maxYTolerance);
         }
 
         System.out.println("maxYTolerance: " + maxYTolerance);
+//        maxYTolerance += 1;
 
         HashMap<String, Structure> multipleColumnStructures = new HashMap<>();
 
@@ -125,6 +129,8 @@ public class App {
         showPdfStructure(pdfDoc, multipleColumnStructures);
 
         pdfDoc.close();
+
+        XmlService.createXmlTest();
     }
 
     public static void showPdfStructure(PdfDocument pdfDoc, HashMap<String, Structure> items) {
@@ -158,6 +164,30 @@ public class App {
             for (Line line :
                     lines) {
                 byte[] bytes = line.getText().getBytes("US-ASCII");
+
+//                System.out.println("innerText: " + line.getText());
+//                System.out.println("bytes: " + Arrays.toString(bytes));
+//
+//                boolean toRemoveFlag = false;
+//                int countEmptyBytes = 0;
+//                for (Byte byteItem :
+//                        bytes) {
+//                    System.out.println("byteItem == 63: " + byteItem.equals(new Byte("63")));
+//
+//                    if(byteItem.equals(new Byte("63"))){
+//                        countEmptyBytes++;
+//                    }
+//                }
+//
+//                System.out.println("countEmptyBytes: " + countEmptyBytes);
+//
+//                if(countEmptyBytes == bytes.length){
+//                    toRemoveFlag = true;
+//                }
+//
+//                if(toRemoveFlag){
+//                    toRemove.add(line);
+//                }
 
                 // [63] -> ascii value of empty string
                 if (Arrays.toString(bytes).equals("[63]")) {
