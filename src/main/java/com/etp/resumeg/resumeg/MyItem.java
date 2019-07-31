@@ -1,7 +1,11 @@
 package com.etp.resumeg.resumeg;
 
+import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.geom.Point;
 import com.itextpdf.kernel.geom.Rectangle;
+import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
+
+import javax.xml.soap.Text;
 
 public class MyItem implements Comparable<MyItem>  {
 
@@ -20,6 +24,8 @@ public class MyItem implements Comparable<MyItem>  {
 
     protected String text;
     protected float fontSize;
+    protected PdfFont font;
+    protected TextRenderInfo textRenderInfo;
 
     public MyItem() {
     }
@@ -30,6 +36,14 @@ public class MyItem implements Comparable<MyItem>  {
 
     public String getText() {
         return text;
+    }
+
+    public PdfFont getFont() {
+        return font;
+    }
+
+    public TextRenderInfo getTextRenderInfo() {
+        return textRenderInfo;
     }
 
     public Rectangle getRealRectangle() {

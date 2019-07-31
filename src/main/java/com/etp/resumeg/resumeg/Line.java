@@ -1,5 +1,6 @@
 package com.etp.resumeg.resumeg;
 
+import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.geom.Rectangle;
 
 import java.util.List;
@@ -22,7 +23,9 @@ public class Line extends MyItem {
         drawableRectangle = getDrawableRectangle();
         text = getItemsText(items);
         fontSize = getItemFontSize(items);
+        font = getItemFont(items);
         pageHeight = items.get(0).getPageHeight();
+        textRenderInfo = items.get(0).getTextRenderInfo();
     }
 
     public List<MyItem> getItems() {
@@ -93,5 +96,9 @@ public class Line extends MyItem {
 
     private static float getItemFontSize(List<MyItem> items) {
         return items.get(0).getFontSize();
+    }
+
+    private static PdfFont getItemFont(List<MyItem> items){
+        return items.get(0).getFont();
     }
 }

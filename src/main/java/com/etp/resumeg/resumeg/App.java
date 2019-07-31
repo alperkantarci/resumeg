@@ -47,7 +47,7 @@ public class App {
         System.out.println("lines.size():" + lines.size());
 //        System.out.println("structures.size():" + structures.size());
 
-        removeEmptyLines(lines);
+//        removeEmptyLines(lines);
 
         HashMap<Double, List<Line>> multipleColumnLines = splitColumnLinesByX(lines);
 
@@ -67,8 +67,8 @@ public class App {
 
         double maxYTolerance = Math.abs(multipleColumnLines.get(firstItemKey).get(0).getLL().getY() - multipleColumnLines.get(firstItemKey).get(1).getLL().getY());
         System.out.println("firstMaxYtolerance: " + maxYTolerance);
-        for(int i = 1; i <= multipleColumnLines.get(firstItemKey).size() - 1; i++){
-            Line linePrev = multipleColumnLines.get(firstItemKey).get(i-1);
+        for (int i = 1; i <= multipleColumnLines.get(firstItemKey).size() - 1; i++) {
+            Line linePrev = multipleColumnLines.get(firstItemKey).get(i - 1);
             Line lineNext = multipleColumnLines.get(firstItemKey).get(i);
 
             System.out.println("line.y: " + multipleColumnLines.get(firstItemKey).get(i).getLL().getY());
@@ -109,18 +109,7 @@ public class App {
             System.out.println();
         }
 
-
         System.out.println("multipleColumnStructures.size(): " + multipleColumnStructures.size());
-
-//        for (Map.Entry<Double, List<Structure>> entry : multipleColumnStructures.entrySet()
-//        ) {
-//            System.out.println("key: " + entry.getKey());
-//            for (Structure structure: entry.getValue()
-//                 ) {
-//                System.out.println("structure.text: " + structure.getText());
-//            }
-//        }
-
 
         System.out.println();
 
@@ -130,7 +119,12 @@ public class App {
 
         pdfDoc.close();
 
-        XmlService.createXmlTest();
+        TagContent.fillTagContentList();
+        System.out.println("tagContentList.size: " + TagContent.getTagContentList().size());
+
+        // loop over structures and create xml
+        XmlService.createXmlTest(multipleColumnStructures);
+
     }
 
     public static void showPdfStructure(PdfDocument pdfDoc, HashMap<String, Structure> items) {
@@ -164,30 +158,6 @@ public class App {
             for (Line line :
                     lines) {
                 byte[] bytes = line.getText().getBytes("US-ASCII");
-
-//                System.out.println("innerText: " + line.getText());
-//                System.out.println("bytes: " + Arrays.toString(bytes));
-//
-//                boolean toRemoveFlag = false;
-//                int countEmptyBytes = 0;
-//                for (Byte byteItem :
-//                        bytes) {
-//                    System.out.println("byteItem == 63: " + byteItem.equals(new Byte("63")));
-//
-//                    if(byteItem.equals(new Byte("63"))){
-//                        countEmptyBytes++;
-//                    }
-//                }
-//
-//                System.out.println("countEmptyBytes: " + countEmptyBytes);
-//
-//                if(countEmptyBytes == bytes.length){
-//                    toRemoveFlag = true;
-//                }
-//
-//                if(toRemoveFlag){
-//                    toRemove.add(line);
-//                }
 
                 // [63] -> ascii value of empty string
                 if (Arrays.toString(bytes).equals("[63]")) {

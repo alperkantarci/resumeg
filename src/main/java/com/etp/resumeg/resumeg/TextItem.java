@@ -1,7 +1,14 @@
 package com.etp.resumeg.resumeg;
 
+import com.itextpdf.kernel.colors.*;
+import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.geom.*;
+import com.itextpdf.kernel.geom.Point;
+import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
+import com.sun.xml.internal.bind.v2.model.core.PropertyInfo;
+
+import java.lang.reflect.Field;
 
 public class TextItem extends MyItem {
 
@@ -12,11 +19,13 @@ public class TextItem extends MyItem {
 
     public TextItem(TextRenderInfo textRenderInfo, float pageHeight) {
         this.pageHeight = pageHeight;
+        this.textRenderInfo = textRenderInfo;
         baseline = textRenderInfo.getBaseline().getStartPoint().get(1);
         realRectangle = getRectangle(textRenderInfo);
         drawableRectangle = getDrawableRectangle();
         text = textRenderInfo.getText();
         fontSize = getFontSize(textRenderInfo);
+        font = getFont(textRenderInfo);
     }
 
     @Override
@@ -29,6 +38,10 @@ public class TextItem extends MyItem {
         float fontSize = new Vector(0, textRenderInfo.getGraphicsState().getFontSize(), 0).cross(textToUserSpaceTransformMatrix)
                 .length();
         return fontSize;
+    }
+
+    static PdfFont getFont(TextRenderInfo textRenderInfo) {
+        return textRenderInfo.getFont();
     }
 
     static Rectangle getRectangle(TextRenderInfo textRenderInfo) {
