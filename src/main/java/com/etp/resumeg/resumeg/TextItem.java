@@ -6,9 +6,6 @@ import com.itextpdf.kernel.geom.*;
 import com.itextpdf.kernel.geom.Point;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
-import com.sun.xml.internal.bind.v2.model.core.PropertyInfo;
-
-import java.lang.reflect.Field;
 
 public class TextItem extends MyItem {
 

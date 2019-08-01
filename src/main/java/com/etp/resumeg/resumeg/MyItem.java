@@ -5,8 +5,6 @@ import com.itextpdf.kernel.geom.Point;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
 
-import javax.xml.soap.Text;
-
 public class MyItem implements Comparable<MyItem>  {
 
     /**

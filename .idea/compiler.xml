@@ -10,8 +10,5 @@
         <module name="resumeg" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="resumeg (1)" target="1.8" />
-    </bytecodeTargetLevel>
   </component>
 </project>

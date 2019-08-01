@@ -10,13 +10,25 @@ import com.itextpdf.kernel.pdf.canvas.CanvasGraphicsState;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
 import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
 import com.itextpdf.kernel.pdf.filespec.PdfDictionaryFS;
+import com.sun.javafx.webkit.WebConsoleListener;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.layout.StackPane;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 
-public class App {
+public class App extends Application {
 
     public App() {
         newContent.put("123 your street", "124 MY STREET");
@@ -25,13 +37,49 @@ public class App {
         newContent.put("no_reply@example.com", "TEST@TEST.COM");
     }
 
+    @Override
+    public void start(Stage stage) {
+        WebView webView = new WebView();
+        WebEngine engine = webView.getEngine();
+
+////Change the path according to yours.
+//        String url = getClass().getResource("pdfjs/web/viewer.html").toExternalForm();
+////We add our stylesheet.
+//        engine.setUserStyleSheetLocation(getClass().getResource("pdfjs/web.css").toExternalForm());
+        engine.setJavaScriptEnabled(true);
+
+        URL urlHello = getClass().getClassLoader().getResource("html/index.html");
+        engine.load(urlHello.toExternalForm());
+        engine.setOnAlert(event -> showAlert(event.getData()));
+
+        Button btn = new Button("test btn");
+
+
+        StackPane layout = new StackPane(webView);
+        layout.getChildren().add(btn);
+
+        Scene scene = new Scene(layout);
+        stage.setTitle("Test javaFx");
+        stage.setScene(scene);
+        stage.centerOnScreen();
+        stage.show();
+
+    }
+
+    private void showAlert(String message) {
+        Dialog<Void> alert = new Dialog<>();
+        alert.getDialogPane().setContentText(message);
+        alert.getDialogPane().getButtonTypes().add(ButtonType.OK);
+        alert.showAndWait();
+    }
+
     // New content for pdf
     private static final HashMap<String, String> newContent = new HashMap<>();
 
     // GoogleWebFonts
     private static GoogleWebFontService webFontService = null;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
         PdfDocument pdfDoc = new PdfDocument(new PdfReader(EnvVariable.SRC_RESUME), new PdfWriter(EnvVariable.OUT_PDF));
         pdfDoc.getFirstPage().getPageSize().getX();
 
@@ -47,70 +95,21 @@ public class App {
         System.out.println("lines.size():" + lines.size());
 //        System.out.println("structures.size():" + structures.size());
 
-//        removeEmptyLines(lines);
-
         HashMap<Double, List<Line>> multipleColumnLines = splitColumnLinesByX(lines);
 
         System.out.println("twoColumnLines.size(): " + multipleColumnLines.size());
 
-        for (Map.Entry<Double, List<Line>> entry : multipleColumnLines.entrySet()
-        ) {
-            System.out.println("key: " + entry.getKey() + " -> " + entry.getValue().size());
-            for (Line line :
-                    entry.getValue()) {
-//                System.out.println("line: " + line.getText());
-            }
-        }
-
         double firstItemKey = (Double) multipleColumnLines.keySet().toArray()[0];
         System.out.println("firstKey: " + firstItemKey);
 
-        double maxYTolerance = Math.abs(multipleColumnLines.get(firstItemKey).get(0).getLL().getY() - multipleColumnLines.get(firstItemKey).get(1).getLL().getY());
-        System.out.println("firstMaxYtolerance: " + maxYTolerance);
-        for (int i = 1; i <= multipleColumnLines.get(firstItemKey).size() - 1; i++) {
-            Line linePrev = multipleColumnLines.get(firstItemKey).get(i - 1);
-            Line lineNext = multipleColumnLines.get(firstItemKey).get(i);
-
-            System.out.println("line.y: " + multipleColumnLines.get(firstItemKey).get(i).getLL().getY());
-            System.out.println("maxYTolerance: " + maxYTolerance);
-
-            maxYTolerance = Math.min(Math.abs(lineNext.getLL().getY() - linePrev.getLL().getY()), maxYTolerance);
-        }
-
+        double maxYTolerance = findMaxYTolerance(multipleColumnLines, firstItemKey);
         System.out.println("maxYTolerance: " + maxYTolerance);
-//        maxYTolerance += 1;
 
-        HashMap<String, Structure> multipleColumnStructures = new HashMap<>();
-
-        for (Map.Entry<Double, List<Line>> entry : multipleColumnLines.entrySet()
-        ) {
-            List<Structure> structures = app.getStructures(entry.getValue(), maxYTolerance);
-
-            for (Structure structure :
-                    structures) {
-                UUID uuid = UUID.randomUUID();
-                String randomUUIDString = uuid.toString();
-
-                if (!multipleColumnStructures.containsKey(randomUUIDString)) {
-                    multipleColumnStructures.put(randomUUIDString, structure);
-                }
-//                multipleColumnStructures.put(randomUUIDString, structure);
-//                System.out.println("structure.text: " + structure.getText());
-            }
-        }
-
+        HashMap<String, Structure> multipleColumnStructures = createMultipleColumnStructures(app, multipleColumnLines, maxYTolerance);
 
         System.out.println();
-        for (Map.Entry<String, Structure> entry :
-                multipleColumnStructures.entrySet()) {
-
-            System.out.println("structureKey: " + entry.getKey());
-            System.out.println("structureTxt: " + entry.getValue().getText());
-            System.out.println();
-        }
-
+        printMultipleColumnStructures(multipleColumnStructures);
         System.out.println("multipleColumnStructures.size(): " + multipleColumnStructures.size());
-
         System.out.println();
 
         showPdfStructure(pdfDoc, items);
@@ -125,6 +124,52 @@ public class App {
         // loop over structures and create xml
         XmlService.createXmlTest(multipleColumnStructures);
 
+        // run javaFx app
+        launch(args);
+    }
+
+    private static void printMultipleColumnStructures(HashMap<String, Structure> multipleColumnStructures) {
+        for (Map.Entry<String, Structure> entry :
+                multipleColumnStructures.entrySet()) {
+
+            System.out.println("structureKey: " + entry.getKey());
+            System.out.println("structureTxt: " + entry.getValue().getText());
+            System.out.println();
+        }
+    }
+
+    private static HashMap<String, Structure> createMultipleColumnStructures(App app, HashMap<Double, List<Line>> multipleColumnLines, double maxYTolerance) {
+        HashMap<String, Structure> multipleColumnStructures = new HashMap<>();
+        for (Map.Entry<Double, List<Line>> entry : multipleColumnLines.entrySet()
+        ) {
+            List<Structure> structures = app.getStructures(entry.getValue(), maxYTolerance);
+
+            for (Structure structure :
+                    structures) {
+                UUID uuid = UUID.randomUUID();
+                String randomUUIDString = uuid.toString();
+
+                if (!multipleColumnStructures.containsKey(randomUUIDString)) {
+                    multipleColumnStructures.put(randomUUIDString, structure);
+                }
+            }
+        }
+        return multipleColumnStructures;
+    }
+
+    private static double findMaxYTolerance(HashMap<Double, List<Line>> multipleColumnLines, double firstItemKey) {
+        double maxYTolerance = Math.abs(multipleColumnLines.get(firstItemKey).get(0).getLL().getY() - multipleColumnLines.get(firstItemKey).get(1).getLL().getY());
+        System.out.println("firstMaxYtolerance: " + maxYTolerance);
+        for (int i = 1; i <= multipleColumnLines.get(firstItemKey).size() - 1; i++) {
+            Line linePrev = multipleColumnLines.get(firstItemKey).get(i - 1);
+            Line lineNext = multipleColumnLines.get(firstItemKey).get(i);
+
+            System.out.println("line.y: " + multipleColumnLines.get(firstItemKey).get(i).getLL().getY());
+            System.out.println("maxYTolerance: " + maxYTolerance);
+
+            maxYTolerance = Math.min(Math.abs(lineNext.getLL().getY() - linePrev.getLL().getY()), maxYTolerance);
+        }
+        return maxYTolerance;
     }
 
     public static void showPdfStructure(PdfDocument pdfDoc, HashMap<String, Structure> items) {

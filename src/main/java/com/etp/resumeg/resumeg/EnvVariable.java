@@ -6,6 +6,6 @@ public class EnvVariable {
     }
 
     // PDF variables
-    public static final String SRC_RESUME = "pdf/input/Resume4_1col.pdf";
+    public static final String SRC_RESUME = "pdf/input/Resume2_1col.pdf";
     public static final String OUT_PDF = "pdf/output/testOutput.pdf";
 }
