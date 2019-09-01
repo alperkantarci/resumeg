@@ -25,7 +25,6 @@ public class XmlService {
 
     public static final String xmlFilePath = "xml/xmlfile.xml";
 
-
     public static void createXmlTest(HashMap<String, Structure> multipleColumnStructures) {
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 

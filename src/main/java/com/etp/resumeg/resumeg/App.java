@@ -12,6 +12,7 @@ import com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo;
 import com.itextpdf.kernel.pdf.filespec.PdfDictionaryFS;
 import com.sun.javafx.webkit.WebConsoleListener;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -20,7 +21,11 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import org.xml.sax.SAXException;
 
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -123,9 +128,27 @@ public class App extends Application {
 
         // loop over structures and create xml
         XmlService.createXmlTest(multipleColumnStructures);
+        boolean valid = true;
+
+        // validate xml
+        try {
+            validate(XmlService.xmlFilePath,"schema/template.xsd");
+        } catch (SAXException e) {
+//            e.printStackTrace();
+            valid = false;
+        }
+
+        System.out.println("xml file is valid: " + valid);
 
         // run javaFx app
-        launch(args);
+//        launch(args);
+        Platform.exit();
+    }
+
+    public static void validate(String xml, String xsd) throws SAXException, IOException {
+        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        ((schemaFactory.newSchema(new File(xsd))).newValidator()).validate(new StreamSource(new File(xml)));
+
     }
 
     private static void printMultipleColumnStructures(HashMap<String, Structure> multipleColumnStructures) {
