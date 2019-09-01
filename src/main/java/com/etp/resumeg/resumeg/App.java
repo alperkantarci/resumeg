@@ -132,7 +132,7 @@ public class App extends Application {
 
         // validate xml
         try {
-            validate(XmlService.xmlFilePath,"schema/template.xsd");
+            validate(XmlService.xmlFilePath,"src/main/resources/schema/template.xsd");
         } catch (SAXException e) {
 //            e.printStackTrace();
             valid = false;
